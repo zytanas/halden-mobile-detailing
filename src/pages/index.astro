@@ -4,12 +4,12 @@ import Header from '../components/layout/Header.astro';
 import MobileBar from '../components/layout/MobileBar.astro';
 import Hero from '../components/sections/Hero/Hero.astro';
 import Packages from '../components/sections/Packages/Packages.astro';
+import Results from '../components/sections/Results/Results.astro';
 import Container from '../components/ui/Container.astro';
 
 // TODO: temporary placeholder sections so navbar active states and anchor scrolling can be tested.
 // Remove each entry as the real section is built.
 const placeholderSections = [
-	{ id: 'results', label: 'Results' },
 	{ id: 'how', label: 'How it works' },
 	{ id: 'club', label: 'Club' },
 	{ id: 'reviews', label: 'Reviews' },
@@ -24,6 +24,7 @@ const placeholderSections = [
 	<main>
 		<Hero />
 		<Packages />
+		<Results />
 
 		{/* TODO: placeholder sections, replace with real sections */}
 		{

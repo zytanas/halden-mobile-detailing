@@ -1,6 +1,7 @@
 ---
 import { site } from '../../config/site';
 import { navigation } from '../../content/navigation';
+import logomark from '../../assets/images/logo/halden-logomark.svg';
 
 interface Props {
 	class?: string;
@@ -18,15 +19,14 @@ const { class: className } = Astro.props;
 	aria-label={`${site.name}, ${navigation.homeLabel}`}
 	data-logo
 >
-	<!-- Red droplet mark -->
-	<svg class="h-5 w-auto text-accent" viewBox="0 0 14 20" fill="none" aria-hidden="true">
-		<path
-			d="M7 1.25C7 1.25 1.5 8 1.5 12.25a5.5 5.5 0 0 0 11 0C12.5 8 7 1.25 7 1.25Z"
-			stroke="currentColor"
-			stroke-width="1.25"
-			stroke-linejoin="round"></path>
-		<path d="M4.5 12.5a2.6 2.6 0 0 0 2.25 2.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"
-		></path>
-	</svg>
+	<img
+		src={logomark.src}
+		width={logomark.width}
+		height={logomark.height}
+		alt=""
+		aria-hidden="true"
+		decoding="async"
+		class="h-6 w-auto"
+	/>
 	<span class="text-sm font-semibold tracking-logo uppercase">{site.shortName}</span>
 </a>

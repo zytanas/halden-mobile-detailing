@@ -30,6 +30,8 @@
 	--text-display--line-height: var(--leading-display);
 	--text-h2: var(--text-h2);
 	--text-h2--line-height: var(--leading-display);
+	--text-stat: var(--text-stat);
+	--text-stat--line-height: var(--leading-display);
 	--text-h3: var(--text-h3);
 	--text-h3--line-height: var(--leading-display);
 	--text-lead: var(--text-lead);
@@ -53,6 +55,7 @@
 	--radius-sm: var(--radius-sm);
 	--radius-md: var(--radius-md);
 	--radius-lg: var(--radius-lg);
+	--radius-frame: var(--radius-frame);
 	--radius-xl: var(--radius-xl);
 	--radius-pill: var(--radius-pill);
 	--radius-panel: var(--radius-panel);

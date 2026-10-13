@@ -1,0 +1,60 @@
+---
+import { formatStat, type Stat } from '../../../content/results';
+
+interface Props {
+	stats: Stat[];
+	class?: string;
+}
+
+const { stats, class: className } = Astro.props;
+
+/*
+ * Dividers: 2×2 on mobile (vertical line after each odd cell, horizontal under the first row),
+ * one row of four from md (vertical line after every cell but the last).
+ */
+const dividers = (i: number) => [
+	i % 2 === 0 && 'border-r',
+	i < 2 && 'border-b md:border-b-0',
+	i === 1 && 'md:border-r',
+];
+---
+
+<dl
+	class:list={['metal-card grid grid-cols-2 rounded-xl px-2 py-2 md:grid-cols-4 md:py-4', className]}
+	data-results-stats
+>
+	{
+		stats.map((stat, i) => {
+			const final = formatStat(stat.value, stat.decimals);
+			return (
+				<div
+					class:list={[
+						'flex min-w-0 flex-col-reverse items-center justify-end gap-2 border-line px-2 py-6 text-center sm:px-3 sm:py-8',
+						dividers(i),
+					]}
+				>
+					<dt class="text-sm text-balance text-ink-muted">{stat.label}</dt>
+					<dd class="heading text-stat text-ink">
+						<span class="sr-only">{final}{stat.suffix}</span>
+						<span class="inline-flex items-baseline whitespace-nowrap" aria-hidden="true">
+							{/*
+								Final values in the HTML; the animation counts up to them. The invisible
+								copy holds the final width, so the suffix never shifts while counting
+								and nothing needs measuring (which breaks if the web font isn't loaded yet).
+							*/}
+							<span class="inline-grid tabular-nums">
+								<span class="invisible col-start-1 row-start-1">{final}</span>
+								<span
+									class="col-start-1 row-start-1 text-right"
+									data-count-to={stat.value}
+									data-decimals={stat.decimals ?? 0}>{final}</span
+								>
+							</span>
+							{stat.suffix && <span class="text-accent">{stat.suffix}</span>}
+						</span>
+					</dd>
+				</div>
+			);
+		})
+	}
+</dl>

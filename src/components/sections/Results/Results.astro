@@ -1,0 +1,107 @@
+---
+import { getImage } from 'astro:assets';
+import BeforeAfter from '../../islands/BeforeAfter';
+import Button from '../../ui/Button.astro';
+import Container from '../../ui/Container.astro';
+import StatCounter from './StatCounter.astro';
+import { captionLine, comparisons, resultsSection, stats, type ComparisonSide } from '../../../content/results';
+
+/*
+ * Desktop: 3 columns, featured slider spans 2×2 and stretches to the height of the two
+ * stacked 4:3 sliders beside it. Tablet: featured full width, the other two side by side.
+ * Mobile: stacked.
+ */
+const sizes = {
+	featured: '(min-width: 1440px) 900px, (min-width: 1024px) 62vw, 100vw',
+	small: '(min-width: 1440px) 440px, (min-width: 1024px) 30vw, (min-width: 768px) 50vw, 100vw',
+};
+
+async function optimise(side: ComparisonSide, featured: boolean) {
+	const base = { alt: side.alt, placeholder: side.hint };
+	if (!side.image) return base;
+	const image = await getImage({
+		src: side.image,
+		widths: featured ? [640, 960, 1280, 1600] : [480, 720, 960, 1280],
+		format: 'webp',
+		// Close-ups of paint and fabric show compression artefacts quickly
+		quality: 90,
+	});
+	return { ...base, src: image.src, srcset: image.srcSet.attribute };
+}
+
+const sliders = await Promise.all(
+	comparisons.map(async (comparison) => {
+		const featured = Boolean(comparison.featured);
+		return {
+			...comparison,
+			featured,
+			caption: captionLine(comparison),
+			before: await optimise(comparison.before, featured),
+			after: await optimise(comparison.after, featured),
+		};
+	}),
+);
+
+const copy = resultsSection;
+---
+
+<section id="results" aria-labelledby="results-heading" class="overflow-x-clip bg-bg py-section" data-results>
+	<Container>
+		<div class="mb-10 flex flex-col gap-5 lg:mb-14 lg:flex-row lg:items-end lg:justify-between">
+			<h2 id="results-heading" class="heading text-h2 text-ink" data-results-reveal>
+				{copy.heading}
+			</h2>
+			<p class="max-w-[48ch] text-lead text-ink-muted" data-results-reveal>{copy.intro}</p>
+		</div>
+
+		<div class="grid grid-cols-1 gap-x-4 gap-y-8 md:grid-cols-2 lg:grid-cols-3 lg:gap-x-6">
+			{
+				sliders.map((slider) => (
+					<figure
+						class:list={[
+							'flex flex-col',
+							slider.featured && 'md:col-span-2 lg:row-span-2',
+						]}
+						data-results-frame
+					>
+						<div
+							class:list={[
+								'relative aspect-4/3 overflow-hidden rounded-frame border border-line bg-metal-200 shadow-soft',
+								// Fill the two-row height on desktop instead of a fixed ratio
+								slider.featured && 'lg:aspect-auto lg:min-h-0 lg:flex-1',
+							]}
+						>
+							<BeforeAfter
+								client:visible
+								before={slider.before}
+								after={slider.after}
+								sizes={slider.featured ? sizes.featured : sizes.small}
+								ariaLabel={`${copy.slider.ariaLabel}: ${slider.title}`}
+								beforeLabel={copy.slider.beforeLabel}
+								afterLabel={copy.slider.afterLabel}
+							/>
+						</div>
+						<figcaption class="mt-4">
+							<span class="heading block text-2xl text-ink">{slider.title}</span>
+							<span class="mt-1 block text-sm text-ink-muted">{slider.caption}</span>
+						</figcaption>
+					</figure>
+				))
+			}
+		</div>
+
+		<StatCounter stats={stats} class="mt-12 lg:mt-16" />
+
+		<div class="mt-12 flex flex-col items-center gap-6 text-center lg:mt-16">
+			<p class="text-lead text-balance text-ink">{copy.closing.text}</p>
+			<Button href={copy.closing.cta.href} variant="primary">{copy.closing.cta.label}</Button>
+		</div>
+	</Container>
+</section>
+
+<script>
+	import { initResults } from './results.animation';
+
+	const root = document.querySelector<HTMLElement>('[data-results]');
+	if (root) initResults(root);
+</script>
