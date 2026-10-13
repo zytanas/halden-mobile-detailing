@@ -1,0 +1,207 @@
+---
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets';
+import Button from '../../ui/Button.astro';
+import Container from '../../ui/Container.astro';
+import TrustBadge from '../../ui/TrustBadge.astro';
+import { hero } from '../../../content/hero';
+
+// Picks up the transparent car cut-out if present; otherwise a same-size placeholder renders.
+const heroImages = import.meta.glob<{ default: ImageMetadata }>('/src/assets/images/hero/red-jaguar.{png,webp,avif}', {
+	eager: true,
+});
+const heroCar = Object.values(heroImages)[0]?.default;
+---
+
+<section id="hero" aria-labelledby="hero-heading" class="relative overflow-x-clip pt-hero-top" data-hero>
+	<script is:inline>
+		// Hide animated elements before first paint, only when motion is allowed.
+		// Failsafe: if the animation script never runs, reveal everything after 3s.
+		(function () {
+			if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+			var d = document.documentElement;
+			d.classList.add('hero-anim');
+			window.__heroFailsafe = setTimeout(function () {
+				d.classList.remove('hero-anim');
+			}, 3000);
+		})();
+	</script>
+
+	<Container>
+		<div
+			class="hero-panel metal metal-sheen isolate flex flex-col rounded-panel border border-metal-100/80 shadow-lift lg:min-h-[88svh]"
+			data-hero-reveal
+			data-hero-panel
+		>
+			<!-- Racing stripes, clipped to the panel (desktop only) -->
+			<div
+				class="pointer-events-none absolute inset-0 hidden overflow-hidden rounded-panel lg:block"
+				aria-hidden="true"
+			>
+				<div
+					class="absolute -top-1/4 left-[84%] flex h-[150%] rotate-28 gap-3 xl:left-[81%] xl:gap-3.5"
+					data-hero-stripes
+				>
+					<div class="h-full w-24 bg-accent xl:w-36" data-hero-stripe></div>
+					<div class="h-full w-8 bg-accent-deep xl:w-12" data-hero-stripe></div>
+				</div>
+			</div>
+
+			<!-- Copy (above the sheen) -->
+			<div
+				class="relative z-2 flex flex-1 flex-col gap-10 p-5 pt-7 sm:p-8 lg:justify-between lg:p-12 xl:p-14"
+				data-hero-content
+			>
+				<div>
+					<h1 id="hero-heading" class="heading text-hero">
+						{
+							hero.headline.map((line) => (
+								<span class:list={['block', line.accent ? 'text-accent' : 'text-ink']} data-hero-line>
+									{line.text}
+								</span>
+							))
+						}
+					</h1>
+				</div>
+
+				<div class="lg:max-w-[44%]">
+					<p class="max-w-[40ch] text-lead text-ink-muted" data-hero-fade>{hero.subhead}</p>
+					<div class="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-8" data-hero-fade>
+						<Button href={hero.primaryCta.href} variant="dark" class="w-full sm:w-auto">
+							{hero.primaryCta.label}
+						</Button>
+						<Button href={hero.secondaryCta.href} variant="link" class="w-full sm:w-auto">
+							{hero.secondaryCta.label}
+						</Button>
+					</div>
+
+					<div class="mt-7 flex flex-wrap items-center gap-3">
+						<p
+							class="rounded-pill border border-accent bg-metal-100/60 px-4 py-2 text-xs font-semibold tracking-wide text-accent-deep"
+							data-hero-fade
+						>
+							{hero.offer}
+						</p>
+						<div
+							class="flex items-center gap-3.5 rounded-lg border border-line bg-metal-100/70 py-3 pr-5 pl-4 shadow-soft backdrop-blur-md"
+							data-hero-fade
+						>
+							<span class="relative flex size-2.5 shrink-0" aria-hidden="true">
+								<span
+									class="absolute inset-0 animate-[ping_2.4s_var(--ease-out)_infinite] rounded-full bg-accent opacity-70 motion-reduce:animate-none"
+								>
+								</span>
+								<span class="relative size-2.5 rounded-full bg-accent"></span>
+							</span>
+							<p class="flex flex-col leading-snug">
+								<span class="text-sm font-semibold text-ink">{hero.availability.title}</span>
+								<span class="text-xs text-ink-muted">{hero.availability.detail}</span>
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!--
+				Car slot: below the copy on mobile, bottom-right on desktop. A full transparent cut-out,
+				so it breaks slightly past the panel's bottom edge with a soft contact shadow under the wheels.
+			-->
+			<div
+				class="relative -mb-6 aspect-[1200/462] w-full sm:-mb-8 sm:w-[82%] sm:self-end lg:absolute lg:right-[1%] lg:bottom-[-6%] lg:mb-0 lg:w-[56%] xl:w-[58%]"
+			>
+				<div class="size-full" data-hero-car-parallax>
+					<div class="relative size-full" data-hero-car>
+						<!-- Contact shadow -->
+						<div
+							class="absolute inset-x-[11%] bottom-[1%] h-[12%] rounded-[50%] bg-ink/50 blur-lg"
+							aria-hidden="true"
+							data-hero-car-shadow
+						>
+						</div>
+						{
+							heroCar ? (
+								<Image
+									src={heroCar}
+									alt={hero.image.alt}
+									widths={[640, 960, 1200]}
+									sizes="(min-width: 1280px) 58vw, (min-width: 1024px) 56vw, (min-width: 640px) 82vw, 100vw"
+									priority
+									class="relative size-full object-contain object-bottom"
+								/>
+							) : (
+								<div
+									class="relative grid size-full place-items-center rounded-xl border-2 border-dashed border-ink-muted p-4"
+									role="img"
+									aria-label={hero.image.alt}
+								>
+									<span class="rounded-pill bg-metal-100/90 px-4 py-1.5 text-center text-sm font-medium text-ink-muted">
+										{hero.image.placeholder}
+									</span>
+								</div>
+							)
+						}
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<ul
+			class="mt-12 flex flex-wrap items-center gap-y-2 px-1 text-xs text-ink-muted sm:mt-14 sm:px-8 sm:text-[0.8125rem] lg:mt-20 lg:px-12 xl:px-14"
+			data-hero-reveal
+			data-hero-trust
+		>
+			{
+				hero.trust.map((item) => (
+					<li class="border-line px-2.5 first:pl-0 last:pr-0 not-first:border-l sm:px-4">
+						<TrustBadge {...item} />
+					</li>
+				))
+			}
+		</ul>
+	</Container>
+</section>
+
+<script>
+	import { initHero } from './hero.animation';
+
+	const root = document.querySelector<HTMLElement>('[data-hero]');
+	if (root) initHero(root);
+</script>
+
+<style>
+	:global(html.hero-anim) [data-hero-reveal] {
+		visibility: hidden;
+	}
+
+	/*
+	 * Keep the copy area at metal-200 or lighter so muted text passes contrast.
+	 * Mobile: a band down the copy column. Desktop: a soft pool in the bottom-left.
+	 * The top-left highlight and the shaded stripe/car side are left untouched.
+	 */
+	.hero-panel {
+		--metal-wash: linear-gradient(
+			to bottom,
+			transparent 0%,
+			color-mix(in oklab, var(--color-metal-200) 90%, transparent) 25%,
+			color-mix(in oklab, var(--color-metal-200) 90%, transparent) 72%,
+			transparent 88%
+		);
+	}
+
+	@media (width >= 64rem) {
+		.hero-panel {
+			--metal-wash: radial-gradient(
+				ellipse 60% 70% at 0% 100%,
+				color-mix(in oklab, var(--color-metal-200) 92%, transparent) 0%,
+				color-mix(in oklab, var(--color-metal-200) 92%, transparent) 62%,
+				transparent 100%
+			);
+		}
+	}
+
+	/* Give split-line masks room for the tight display line-height */
+	:global(.hero-line-mask) {
+		padding: 0.06em 0.05em 0.1em;
+		margin: -0.06em -0.05em -0.1em;
+	}
+</style>

@@ -1,0 +1,148 @@
+---
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets';
+import Icon from '../../ui/Icon.astro';
+import { formatPrice, packagesSection } from '../../../content/packages';
+
+interface Props {
+	kind: 'package' | 'addon';
+	/** Package or add-on id, exposed as data-package / data-addon for the calculator */
+	id: string;
+	name: string;
+	price: number;
+	duration?: string;
+	badge?: string;
+	featured?: boolean;
+	/** Transparent PNG cut-out. Omit to show a labelled placeholder in the same slot. */
+	image?: ImageMetadata;
+	imageHint: string;
+	/** Grid placement classes */
+	class?: string;
+	/** Size of the image slot for this card's footprint */
+	slotClass?: string;
+}
+
+const {
+	kind,
+	id,
+	name,
+	price,
+	duration,
+	badge,
+	featured = false,
+	image,
+	imageHint,
+	class: className,
+	slotClass = 'w-[55%]',
+} = Astro.props;
+
+const isPackage = kind === 'package';
+const copy = packagesSection;
+const eyebrow = isPackage ? copy.packageEyebrow : copy.addOnEyebrow;
+const dataAttr = { [isPackage ? 'data-package' : 'data-addon']: id };
+---
+
+<article
+	class:list={[
+		'group relative flex flex-col rounded-xl p-5 sm:p-6 lg:p-7',
+		'transition-[translate,border-color,box-shadow] duration-500 ease-out',
+		'hover:-translate-y-1 hover:border-accent/40 hover:shadow-lift',
+		'has-focus-visible:-translate-y-1 has-focus-visible:border-accent/40 has-focus-visible:shadow-lift',
+		'motion-reduce:transition-none',
+		featured ? 'border border-accent bg-accent text-on-accent shadow-soft' : 'metal-card text-ink',
+		isPackage ? 'min-h-60 md:min-h-0' : 'min-h-48 md:min-h-0',
+		className,
+	]}
+	data-bento-card
+>
+	{
+		featured && (
+			<div class="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]" aria-hidden="true">
+				<div class="absolute -top-10 right-[30%] h-48 w-3 rotate-28 bg-accent-deep sm:w-4" />
+			</div>
+		)
+	}
+
+	<!-- Image slot: anchored bottom-right, breaks past the card edge. Same box with or without an image. -->
+	<div
+		class:list={[
+			'pointer-events-none absolute -right-3 -bottom-3 aspect-square -rotate-3',
+			'transition-[scale,rotate] duration-700 ease-out motion-reduce:transition-none',
+			'group-hover:scale-104 group-hover:-rotate-1 group-has-focus-visible:scale-104 group-has-focus-visible:-rotate-1',
+			slotClass,
+		]}
+		aria-hidden="true"
+		data-image-slot
+	>
+		{
+			image ? (
+				<Image
+					src={image}
+					alt=""
+					widths={[240, 400, 640]}
+					sizes="(min-width: 1024px) 22vw, 50vw"
+					class="size-full object-contain object-bottom-right drop-shadow-[0_18px_24px_color-mix(in_oklab,var(--color-ink)_30%,transparent)]"
+				/>
+			) : (
+				<div
+					class:list={[
+						'grid size-full place-items-center rounded-lg border-2 border-dashed p-1.5 text-center text-[0.625rem] leading-snug font-medium sm:p-3 sm:text-[0.6875rem]',
+						featured
+							? 'border-on-accent/70 text-on-accent'
+							: 'border-ink-muted/70 bg-metal-100/60 text-ink-muted',
+					]}
+				>
+					{copy.imageHintPrefix} {imageHint}
+				</div>
+			)
+		}
+	</div>
+
+	{
+		badge && (
+			<span class="absolute top-5 right-5 z-10 rounded-pill bg-ink px-3 py-1 text-[0.6875rem] font-semibold tracking-wide text-on-accent uppercase sm:top-6 sm:right-6">
+				{badge}
+			</span>
+		)
+	}
+
+	<div class="relative z-10 flex flex-1 flex-col items-start">
+		<p
+			class:list={[
+				'text-[0.6875rem] font-semibold tracking-eyebrow uppercase',
+				featured ? 'text-on-accent' : 'text-ink-muted',
+			]}
+		>
+			{eyebrow}
+		</p>
+		<h3 class:list={['heading mt-2', isPackage ? 'max-w-[14ch] text-card-title' : 'text-xl sm:text-2xl']}>
+			{name}
+		</h3>
+		<p class:list={['mt-2 text-sm', featured ? 'text-on-accent' : 'text-ink-muted']}>
+			{isPackage && <>{copy.fromLabel} </>}
+			{!isPackage && copy.addOnPrefix}<span
+				class:list={['font-semibold tabular-nums', featured ? 'text-on-accent' : 'text-accent-deep']}
+				data-count-to={featured ? price : undefined}>{formatPrice(price)}</span
+			>
+			{duration && <> · {duration}</>}
+		</p>
+
+		<a
+			href={copy.cta.href}
+			class:list={[
+				'mt-auto inline-flex items-center gap-1.5 rounded-pill px-3 py-2 text-xs font-semibold sm:gap-2 sm:px-4',
+				'transition-colors duration-300',
+				featured
+					? 'bg-metal-100 text-accent-deep'
+					: 'border border-line bg-metal-100 text-ink hover:border-ink',
+			]}
+			{...dataAttr}
+		>
+			{copy.detailsLabel}<span class="sr-only">: {name}</span>
+			<Icon
+				name="arrow"
+				class="size-3.5 transition-transform duration-500 ease-out group-hover:translate-x-1 group-has-focus-visible:translate-x-1"
+			/>
+		</a>
+	</div>
+</article>

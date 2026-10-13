@@ -1,0 +1,112 @@
+---
+import Container from '../../ui/Container.astro';
+import Icon from '../../ui/Icon.astro';
+import BentoCard from './BentoCard.astro';
+import { fromPrice, getAddOn, getPackage, packagesSection } from '../../../content/packages';
+
+/*
+ * Bento layout. Data comes from content/packages.ts; this only decides placement.
+ * DOM order is the mobile reading order (packages, add-ons, CTA). Tablet uses dense
+ * auto-flow; desktop places each card explicitly on the 4-column grid.
+ */
+const packageCards = [
+	{
+		id: 'paint-enhancement',
+		featured: true,
+		class: 'col-span-2 lg:col-start-1 lg:row-start-1',
+		slot: 'w-[44%] sm:w-[36%] lg:w-[40%]',
+	},
+	{
+		id: 'full-valet',
+		class: 'col-span-2 md:col-span-1 lg:col-start-3 lg:row-start-1',
+		slot: 'w-[44%] md:w-[50%]',
+	},
+	{
+		id: 'ceramic-coating',
+		class: 'col-span-2 md:col-span-1 md:row-span-2 lg:col-start-4 lg:row-start-1',
+		slot: 'w-[44%] md:w-[86%]',
+	},
+	{
+		id: 'maintenance-wash',
+		class: 'col-span-2 lg:col-start-2 lg:row-start-2',
+		slot: 'w-[44%] sm:w-[36%] lg:w-[40%]',
+	},
+].map((card) => ({ ...card, pkg: getPackage(card.id) }));
+
+const addOnCards = [
+	{ id: 'headlights', class: 'lg:col-start-1 lg:row-start-2' },
+	{ id: 'pet-hair', class: 'lg:col-start-1 lg:row-start-3' },
+	{ id: 'engine-bay', class: 'lg:col-start-2 lg:row-start-3' },
+	{ id: 'leather', class: 'lg:col-start-3 lg:row-start-3' },
+].map((card) => ({ ...card, addOn: getAddOn(card.id) }));
+
+const copy = packagesSection;
+---
+
+<section id="packages" aria-labelledby="packages-heading" class="overflow-x-clip py-section" data-packages>
+	<Container>
+		<div class="mb-10 flex flex-col gap-5 lg:mb-14 lg:flex-row lg:items-end lg:justify-between">
+			<h2 id="packages-heading" class="heading text-h2 text-ink">
+				{copy.heading}
+			</h2>
+			<p class="max-w-[38ch] text-lead text-ink-muted">{copy.intro}</p>
+		</div>
+
+		<div
+			class="grid grid-cols-2 gap-bento-gap md:grid-flow-dense md:auto-rows-60 lg:grid-cols-4 lg:auto-rows-(--bento-row)"
+		>
+			{
+				packageCards.map(({ pkg, featured, class: placement, slot }) => (
+					<BentoCard
+						kind="package"
+						id={pkg.id}
+						name={pkg.name}
+						price={fromPrice(pkg)}
+						duration={pkg.duration}
+						badge={pkg.badge}
+						featured={featured}
+						imageHint={pkg.imageHint}
+						class={placement}
+						slotClass={slot}
+					/>
+				))
+			}
+			{
+				addOnCards.map(({ addOn, class: placement }) => (
+					<BentoCard
+						kind="addon"
+						id={addOn.id}
+						name={addOn.name}
+						price={addOn.price}
+						imageHint={addOn.imageHint}
+						class={placement}
+						slotClass="w-[38%] sm:w-[44%]"
+					/>
+				))
+			}
+
+			<!-- CTA card -->
+			<a
+				href={copy.cta.href}
+				class="group relative col-span-2 flex min-h-36 flex-col justify-between gap-6 rounded-xl border-2 border-dashed border-accent bg-surface p-5 transition-[translate,border-color,box-shadow] duration-500 ease-out hover:-translate-y-1 hover:border-accent-deep hover:shadow-lift focus-visible:-translate-y-1 focus-visible:border-accent-deep focus-visible:shadow-lift motion-reduce:transition-none sm:p-6 md:col-span-1 md:min-h-0 lg:col-start-4 lg:row-start-3 lg:p-7"
+				data-bento-card
+			>
+				<span class="text-sm text-ink-muted">{copy.cta.title}</span>
+				<span class="heading inline-flex items-center gap-3 text-3xl text-ink">
+					{copy.cta.label}
+					<Icon
+						name="arrow"
+						class="size-6 text-accent transition-transform duration-500 ease-out group-hover:translate-x-1.5 group-focus-visible:translate-x-1.5"
+					/>
+				</span>
+			</a>
+		</div>
+	</Container>
+</section>
+
+<script>
+	import { initPackages } from './packages.animation';
+
+	const root = document.querySelector<HTMLElement>('[data-packages]');
+	if (root) initPackages(root);
+</script>

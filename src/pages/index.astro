@@ -1,45 +1,47 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/layout/Header.astro';
+import MobileBar from '../components/layout/MobileBar.astro';
+import Hero from '../components/sections/Hero/Hero.astro';
+import Packages from '../components/sections/Packages/Packages.astro';
+import Container from '../components/ui/Container.astro';
 
-const services = [
-	{ name: 'Exterior Detail', text: 'Hand wash, clay bar, and wax for a deep, lasting shine.' },
-	{ name: 'Interior Detail', text: 'Vacuum, steam clean, and conditioning for every surface.' },
-	{ name: 'Full Detail', text: 'Inside and out, done right at your driveway.' },
+// TODO: temporary placeholder sections so navbar active states and anchor scrolling can be tested.
+// Remove each entry as the real section is built.
+const placeholderSections = [
+	{ id: 'results', label: 'Results' },
+	{ id: 'how', label: 'How it works' },
+	{ id: 'club', label: 'Club' },
+	{ id: 'reviews', label: 'Reviews' },
+	{ id: 'faq', label: 'FAQ' },
+	{ id: 'contact', label: 'Contact' },
+	{ id: 'quote', label: 'Quote' },
 ];
 ---
 
-<Layout>
+<BaseLayout>
+	<Header />
 	<main>
-		<section class="flex min-h-screen flex-col items-center justify-center px-6 text-center">
-			<p data-hero class="mb-4 text-sm font-semibold uppercase tracking-widest text-sky-400">
-				Mobile Detailing
-			</p>
-			<h1 data-hero class="max-w-3xl text-5xl font-bold tracking-tight md:text-7xl">
-				Halden Mobile Detailing
-			</h1>
-			<p data-hero class="mt-6 max-w-xl text-lg text-neutral-400">
-				Showroom shine, delivered to your door.
-			</p>
-			<a
-				data-hero
-				href="#services"
-				class="mt-10 rounded-full bg-sky-500 px-8 py-3 font-semibold text-neutral-950 transition hover:bg-sky-400"
-			>
-				See services
-			</a>
-		</section>
+		<Hero />
+		<Packages />
 
-		<section id="services" class="mx-auto grid max-w-5xl gap-6 px-6 py-24 md:grid-cols-3">
-			{services.map((s) => (
-				<article data-reveal class="rounded-2xl border border-neutral-800 bg-neutral-900 p-8">
-					<h2 class="text-xl font-semibold">{s.name}</h2>
-					<p class="mt-3 text-neutral-400">{s.text}</p>
-				</article>
-			))}
-		</section>
+		{/* TODO: placeholder sections, replace with real sections */}
+		{
+			placeholderSections.map((section) => (
+				<section
+					id={section.id}
+					aria-labelledby={`${section.id}-heading`}
+					class="flex min-h-[60vh] items-center border-t border-dashed border-line bg-bg"
+				>
+					<Container>
+						<h2 id={`${section.id}-heading`} class="heading text-h3 text-ink">
+							{section.label}
+						</h2>
+						<p class="mt-2 text-sm text-ink-muted">Coming soon</p>
+					</Container>
+				</section>
+			))
+		}
 	</main>
-</Layout>
-
-<script>
-	import '../scripts/animations';
-</script>
+	<MobileBar />
+</BaseLayout>

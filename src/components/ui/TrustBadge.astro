@@ -1,0 +1,12 @@
+---
+import type { TrustItem } from '../../content/hero';
+
+type Props = TrustItem & { class?: string };
+
+const { label, icon, class: className } = Astro.props;
+---
+
+<span class:list={['inline-flex items-center gap-1.5 whitespace-nowrap', className]}>
+	{icon === 'star' && <span class="text-accent-deep" aria-hidden="true">★</span>}
+	{label}
+</span>

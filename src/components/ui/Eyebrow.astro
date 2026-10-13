@@ -1,0 +1,18 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = HTMLAttributes<'p'>;
+
+const { class: className, ...rest } = Astro.props;
+---
+
+<p
+	class:list={[
+		'flex items-center gap-3 text-xs leading-snug font-medium tracking-eyebrow text-balance text-accent-deep uppercase sm:text-[0.8125rem]',
+		className,
+	]}
+	{...rest}
+>
+	<span class="h-0.5 w-6 shrink-0 bg-accent sm:w-8" aria-hidden="true"></span>
+	<span><slot /></span>
+</p>

@@ -1,0 +1,298 @@
+---
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+import Logo from '../ui/Logo.astro';
+import { site } from '../../config/site';
+import { navigation } from '../../content/navigation';
+
+const callLabel = `${navigation.callLabel} ${site.phone}`;
+---
+
+<header
+	class="pointer-events-none fixed inset-x-0 top-3 z-50 lg:top-4"
+>
+	<div class="mx-auto w-full max-w-site px-gutter">
+		<div
+			class="pointer-events-auto flex h-14 items-center justify-between gap-4 rounded-pill border border-line bg-metal-100/75 pr-2 pl-5 shadow-soft backdrop-blur-xl lg:h-16 lg:pr-2.5 lg:pl-7"
+		>
+			<Logo />
+
+			<nav aria-label={navigation.navLabel} class="hidden lg:block">
+				<ul class="flex items-center xl:gap-1">
+					{
+						navigation.links.map((link) => (
+							<li>
+								<a
+									href={link.href}
+									class="relative block rounded-pill px-2.5 py-2 text-[0.8125rem] font-medium text-ink-muted transition-colors duration-300 after:absolute after:bottom-0.5 after:left-1/2 after:size-1 after:-translate-x-1/2 after:rounded-full after:bg-accent after:opacity-0 after:transition-opacity after:duration-300 hover:text-ink data-active:text-ink data-active:after:opacity-100 xl:px-3"
+									data-nav-link
+								>
+									{link.label}
+								</a>
+							</li>
+						))
+					}
+				</ul>
+			</nav>
+
+			<div class="flex items-center gap-2">
+				<!-- Desktop: phone + quote -->
+				<a
+					href={site.phoneHref}
+					class="hidden min-h-10 items-center gap-2 rounded-pill px-3 text-sm font-medium text-ink transition-colors duration-300 hover:text-accent-deep lg:inline-flex"
+				>
+					<Icon name="phone" class="size-4 text-accent" />
+					<span class="hidden tabular-nums xl:inline">{site.phone}</span>
+					<span class="sr-only xl:hidden">{callLabel}</span>
+				</a>
+				<Button href={navigation.cta.href} size="sm" class="max-lg:hidden">{navigation.cta.label}</Button>
+
+				<!-- Mobile/tablet: call + menu -->
+				<a
+					href={site.phoneHref}
+					class="grid size-10 place-items-center rounded-full border border-line bg-metal-100/60 text-ink transition-colors duration-300 hover:border-ink lg:hidden"
+					aria-label={callLabel}
+				>
+					<Icon name="phone" class="size-4" />
+				</a>
+				<button
+					type="button"
+					class="grid size-10 cursor-pointer place-items-center rounded-full bg-ink text-on-accent transition-colors duration-300 hover:bg-accent lg:hidden"
+					aria-expanded="false"
+					aria-controls="mobile-menu"
+					aria-label={navigation.openMenu}
+					data-menu-open
+				>
+					<Icon name="menu" class="size-4.5" />
+				</button>
+			</div>
+		</div>
+	</div>
+</header>
+
+<!-- Full-screen mobile menu. Kept outside <header> so the header's backdrop blur doesn't trap it. -->
+<div
+	id="mobile-menu"
+	class="fixed inset-0 z-60 flex flex-col overflow-y-auto overscroll-contain metal lg:hidden"
+	role="dialog"
+	aria-modal="true"
+	aria-label={navigation.menuLabel}
+	hidden
+	data-menu
+>
+	<div class="mx-auto w-full max-w-site px-gutter pt-3">
+		<div class="flex h-14 items-center justify-between pr-2 pl-5">
+			<Logo />
+			<button
+				type="button"
+				class="grid size-10 cursor-pointer place-items-center rounded-full bg-ink text-on-accent transition-colors duration-300 hover:bg-accent"
+				aria-label={navigation.closeMenu}
+				data-menu-close
+			>
+				<Icon name="close" class="size-4.5" />
+			</button>
+		</div>
+	</div>
+
+	<nav aria-label={navigation.navLabel} class="mx-auto w-full max-w-site flex-1 px-gutter pt-8 pb-10">
+		<ul class="flex flex-col pl-5">
+			{
+				navigation.links.map((link) => (
+					<li data-menu-item>
+						<a
+							href={link.href}
+							class="heading block py-1.5 text-h2 text-ink transition-colors duration-300 hover:text-accent data-active:text-accent"
+							data-nav-link
+						>
+							{link.label}
+						</a>
+					</li>
+				))
+			}
+		</ul>
+	</nav>
+
+	<div class="mx-auto w-full max-w-site px-gutter pb-[max(1.5rem,env(safe-area-inset-bottom))]" data-menu-item>
+		<div class="rounded-xl border border-line bg-metal-100/70 p-5 backdrop-blur-md">
+			<ul class="flex flex-col gap-3 text-sm text-ink-muted">
+				<li>
+					<a href={site.phoneHref} class="inline-flex items-center gap-3 text-ink-muted hover:text-accent-deep">
+						<Icon name="phone" class="size-4 text-accent" />
+						<span class="tabular-nums">{site.phone}</span>
+					</a>
+				</li>
+				<li>
+					<a href={`mailto:${site.email}`} class="inline-flex items-center gap-3 text-ink-muted hover:text-accent-deep">
+						<Icon name="mail" class="size-4 text-accent" />
+						{site.email}
+					</a>
+				</li>
+				<li class="inline-flex items-center gap-3">
+					<Icon name="clock" class="size-4 text-accent" />
+					<span><span class="sr-only">{navigation.hoursLabel}: </span>{site.hours}</span>
+				</li>
+			</ul>
+			<Button href={navigation.cta.href} class="mt-7 w-full">{navigation.cta.label}</Button>
+		</div>
+	</div>
+</div>
+
+<script>
+	import { gsap } from '../../lib/gsap';
+	import { prefersReducedMotion } from '../../lib/motion';
+	import { MENU_TOGGLE_EVENT } from '../../lib/events';
+
+	const menu = document.querySelector<HTMLElement>('[data-menu]');
+	const openButton = document.querySelector<HTMLButtonElement>('[data-menu-open]');
+	const closeButton = menu?.querySelector<HTMLButtonElement>('[data-menu-close]');
+
+	let menuOpen = false;
+
+	/* ---------- Active section highlighting ---------- */
+	const navLinks = [...document.querySelectorAll<HTMLAnchorElement>('[data-nav-link]')];
+	const sectionIds = [...new Set(navLinks.map((link) => link.hash.slice(1)))];
+	// Sections that don't exist yet are simply skipped
+	const sections = sectionIds
+		.map((id) => document.getElementById(id))
+		.filter((el): el is HTMLElement => el !== null);
+
+	const setActive = (id: string | null) => {
+		for (const link of navLinks) {
+			const active = id !== null && link.hash === `#${id}`;
+			link.toggleAttribute('data-active', active);
+			if (active) link.setAttribute('aria-current', 'true');
+			else link.removeAttribute('aria-current');
+		}
+	};
+
+	if (sections.length) {
+		const visible = new Set<string>();
+		const observer = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) {
+					if (entry.isIntersecting) visible.add(entry.target.id);
+					else visible.delete(entry.target.id);
+				}
+				setActive(sections.find((section) => visible.has(section.id))?.id ?? null);
+			},
+			// A thin band just above the middle of the viewport decides the active section
+			{ rootMargin: '-45% 0px -54% 0px' },
+		);
+		sections.forEach((section) => observer.observe(section));
+	}
+
+	/* ---------- Mobile menu ---------- */
+	if (menu && openButton && closeButton) {
+		const root = document.documentElement;
+		const items = menu.querySelectorAll('[data-menu-item]');
+		const focusables = () =>
+			[...menu.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')].filter(
+				(el) => el.offsetParent !== null,
+			);
+
+		const announce = (open: boolean) =>
+			window.dispatchEvent(new CustomEvent(MENU_TOGGLE_EVENT, { detail: { open } }));
+
+		const openMenu = () => {
+			if (menuOpen) return;
+			menuOpen = true;
+			menu.hidden = false;
+			openButton.setAttribute('aria-expanded', 'true');
+			root.style.overflow = 'hidden';
+			announce(true);
+
+			// Fade with opacity only: the hidden attribute owns visibility, and the close
+			// button must be focusable immediately
+			gsap.killTweensOf([menu, items]);
+			if (prefersReducedMotion()) {
+				gsap.set(menu, { opacity: 1 });
+				gsap.set(items, { autoAlpha: 1, y: 0 });
+			} else {
+				gsap.fromTo(menu, { opacity: 0 }, { opacity: 1, duration: 0.4, ease: 'power2.out' });
+				gsap.fromTo(
+					items,
+					{ autoAlpha: 0, y: 28 },
+					{ autoAlpha: 1, y: 0, duration: 0.9, stagger: 0.06, ease: 'expo.out', delay: 0.1 },
+				);
+			}
+			closeButton.focus();
+		};
+
+		const closeMenu = ({ returnFocus = true } = {}) =>
+			new Promise<void>((resolve) => {
+				if (!menuOpen) return resolve();
+				menuOpen = false;
+				openButton.setAttribute('aria-expanded', 'false');
+
+				const finish = () => {
+					menu.hidden = true;
+					root.style.overflow = '';
+					announce(false);
+					if (returnFocus) openButton.focus();
+					resolve();
+				};
+
+				gsap.killTweensOf([menu, items]);
+				if (prefersReducedMotion()) finish();
+				else gsap.to(menu, { opacity: 0, duration: 0.3, ease: 'power2.in', onComplete: finish });
+			});
+
+		openButton.addEventListener('click', openMenu);
+		closeButton.addEventListener('click', () => closeMenu());
+
+		document.addEventListener('keydown', (event) => {
+			if (!menuOpen) return;
+
+			if (event.key === 'Escape') {
+				event.preventDefault();
+				closeMenu();
+				return;
+			}
+
+			// Trap focus inside the open menu
+			if (event.key === 'Tab') {
+				const els = focusables();
+				const first = els[0];
+				const last = els[els.length - 1];
+				if (event.shiftKey && document.activeElement === first) {
+					event.preventDefault();
+					last.focus();
+				} else if (!event.shiftKey && document.activeElement === last) {
+					event.preventDefault();
+					first.focus();
+				} else if (!menu.contains(document.activeElement)) {
+					event.preventDefault();
+					first.focus();
+				}
+			}
+		});
+
+		// In-page links: close the menu first, then scroll and move focus to the target
+		menu.addEventListener('click', async (event) => {
+			const link = (event.target as Element).closest<HTMLAnchorElement>('a[href^="#"]');
+			if (!link) return;
+			event.preventDefault();
+
+			const hash = link.hash || '#top';
+			await closeMenu({ returnFocus: false });
+
+			const behavior: ScrollBehavior = prefersReducedMotion() ? 'auto' : 'smooth';
+			const target = hash === '#top' ? null : document.querySelector<HTMLElement>(hash);
+			history.pushState(null, '', hash);
+
+			if (target) {
+				target.scrollIntoView({ behavior, block: 'start' });
+				if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+				target.focus({ preventScroll: true });
+			} else {
+				window.scrollTo({ top: 0, behavior });
+				openButton.focus({ preventScroll: true });
+			}
+		});
+
+		// Close if the viewport grows into the desktop layout
+		window.matchMedia('(min-width: 64rem)').addEventListener('change', (event) => {
+			if (event.matches) closeMenu({ returnFocus: false });
+		});
+	}
+</script>

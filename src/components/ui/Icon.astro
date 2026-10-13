@@ -1,0 +1,26 @@
+---
+/** Small line icons on a 16px grid. Decorative by default (aria-hidden). */
+type IconName = 'arrow' | 'phone' | 'mail' | 'clock' | 'menu' | 'close';
+
+interface Props {
+	name: IconName;
+	class?: string;
+}
+
+const { name, class: className = 'size-4' } = Astro.props;
+
+const paths: Record<IconName, string> = {
+	arrow: 'M1 8h13M9.5 3.5 14 8l-4.5 4.5',
+	phone:
+		'M5.6 1.75H3.5A1.75 1.75 0 0 0 1.75 3.6c.2 5.7 4.95 10.45 10.65 10.65a1.75 1.75 0 0 0 1.85-1.75v-2.1l-2.95-1.2-1.4 1.55a8.2 8.2 0 0 1-4.6-4.6L6.85 4.7Z',
+	mail: 'M2 3.5h12v9H2zM2.25 4l5.75 4.5L13.75 4',
+	clock: 'M8 1.75a6.25 6.25 0 1 0 0 12.5 6.25 6.25 0 0 0 0-12.5ZM8 4.5V8l2.5 1.5',
+	menu: 'M2 5.5h12M2 10.5h12',
+	close: 'M3.5 3.5l9 9M12.5 3.5l-9 9',
+};
+---
+
+<svg class={className} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+	<path d={paths[name]} stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"
+	></path>
+</svg>

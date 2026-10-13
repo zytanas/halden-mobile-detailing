@@ -1,0 +1,61 @@
+---
+import Button from '../ui/Button.astro';
+import { site } from '../../config/site';
+import { mobileBar } from '../../content/navigation';
+---
+
+<aside
+	aria-label={mobileBar.label}
+	class="fixed inset-x-0 bottom-0 z-40 translate-y-full transition-[translate] duration-(--duration-header) ease-out data-visible:translate-y-0 motion-reduce:transition-none md:hidden"
+	inert
+	data-mobile-bar
+>
+	<div
+		class="flex gap-3 border-t border-line bg-metal-100/80 px-gutter pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-xl"
+	>
+		<Button href={site.phoneHref} variant="outline" class="flex-1">{mobileBar.call}</Button>
+		<Button href={mobileBar.quote.href} class="flex-1">{mobileBar.quote.label}</Button>
+	</div>
+</aside>
+
+<script>
+	import { MENU_TOGGLE_EVENT } from '../../lib/events';
+
+	const bar = document.querySelector<HTMLElement>('[data-mobile-bar]');
+
+	if (bar) {
+		const state = { pastHero: false, menuOpen: false, quoteVisible: false };
+
+		const render = () => {
+			const show = state.pastHero && !state.menuOpen && !state.quoteVisible;
+			bar.toggleAttribute('data-visible', show);
+			bar.inert = !show;
+		};
+
+		const hero = document.getElementById('hero');
+		if (hero) {
+			new IntersectionObserver(([entry]) => {
+				state.pastHero = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+				render();
+			}).observe(hero);
+		} else {
+			state.pastHero = true;
+		}
+
+		// Don't compete with the quote form itself (skipped until that section exists)
+		const quote = document.getElementById('quote');
+		if (quote) {
+			new IntersectionObserver(([entry]) => {
+				state.quoteVisible = entry.isIntersecting;
+				render();
+			}).observe(quote);
+		}
+
+		window.addEventListener(MENU_TOGGLE_EVENT, (event) => {
+			state.menuOpen = event.detail.open;
+			render();
+		});
+
+		render();
+	}
+</script>

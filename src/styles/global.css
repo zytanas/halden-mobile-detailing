@@ -1,1 +1,185 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+@import './tokens.css';
+
+/*
+ * Map design tokens into Tailwind. `inline` makes utilities reference the token
+ * variables directly (e.g. bg-surface → var(--color-surface)), so tokens.css stays
+ * the single source of truth. Tailwind's default palette and fonts are cleared so
+ * only brand values are available as utilities.
+ */
+@theme inline {
+	--color-*: initial;
+	--color-bg: var(--color-bg);
+	--color-surface: var(--color-surface);
+	--color-metal-100: var(--color-metal-100);
+	--color-metal-200: var(--color-metal-200);
+	--color-metal-300: var(--color-metal-300);
+	--color-metal-400: var(--color-metal-400);
+	--color-line: var(--color-line);
+	--color-ink: var(--color-ink);
+	--color-ink-muted: var(--color-ink-muted);
+	--color-accent: var(--color-accent);
+	--color-accent-deep: var(--color-accent-deep);
+	--color-on-accent: var(--color-on-accent);
+
+	--font-*: initial;
+	--font-display: var(--font-display);
+	--font-body: var(--font-body);
+
+	--text-display: var(--text-display);
+	--text-display--line-height: var(--leading-display);
+	--text-h2: var(--text-h2);
+	--text-h2--line-height: var(--leading-display);
+	--text-h3: var(--text-h3);
+	--text-h3--line-height: var(--leading-display);
+	--text-lead: var(--text-lead);
+	--text-lead--line-height: var(--leading-body);
+	--text-hero: var(--text-hero);
+	--text-hero--line-height: var(--leading-hero);
+	--text-card-title: var(--text-card-title);
+	--text-card-title--line-height: var(--leading-display);
+
+	--tracking-display: var(--tracking-display);
+	--tracking-eyebrow: var(--tracking-eyebrow);
+	--tracking-logo: var(--tracking-logo);
+
+	--spacing-gutter: var(--space-gutter);
+	--spacing-section: var(--space-section);
+	--spacing-header: var(--space-header);
+	--spacing-hero-top: var(--space-hero-top);
+	--spacing-bento-gap: var(--bento-gap);
+	--container-site: var(--container-max);
+
+	--radius-sm: var(--radius-sm);
+	--radius-md: var(--radius-md);
+	--radius-lg: var(--radius-lg);
+	--radius-xl: var(--radius-xl);
+	--radius-pill: var(--radius-pill);
+	--radius-panel: var(--radius-panel);
+
+	--shadow-soft: var(--shadow-soft);
+	--shadow-lift: var(--shadow-lift);
+	--shadow-accent: var(--shadow-accent);
+
+	--ease-out: var(--ease-out);
+	--ease-in-out: var(--ease-in-out);
+}
+
+/* Display heading treatment: condensed, bold, uppercase. Pair with a text-* size. */
+@utility heading {
+	font-family: var(--font-display);
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: var(--tracking-display);
+	line-height: var(--leading-display);
+}
+
+/* ---------- Metallic surfaces ---------- */
+
+/*
+ * Shiny silver panel, lit from the top-left.
+ * Optional --metal-wash: a gradient layered on top to keep text areas at metal-200 or
+ * lighter (muted-text contrast rule) while the rest keeps its shading.
+ */
+@utility metal {
+	background-color: var(--color-metal-200);
+	background-image: var(--metal-wash, linear-gradient(transparent, transparent)), radial-gradient(
+		ellipse at 18% 10%,
+		var(--color-metal-100) 0%,
+		var(--color-metal-200) 28%,
+		var(--color-metal-300) 58%,
+		var(--color-metal-400) 100%
+	);
+}
+
+/*
+ * Light catching metal: a soft diagonal highlight on ::after.
+ * Move it with --sheen-x (a percentage across the element; GSAP animates this) and
+ * soften it with --sheen-strength. Content that should sit above the sheen needs z-2 or higher.
+ */
+@utility metal-sheen {
+	position: relative;
+	--sheen-x: -30%;
+	--sheen-strength: 55%;
+
+	&::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		border-radius: inherit;
+		pointer-events: none;
+		background: linear-gradient(
+			115deg,
+			transparent calc(var(--sheen-x) - 16%),
+			color-mix(in oklab, var(--color-metal-100) var(--sheen-strength), transparent) var(--sheen-x),
+			transparent calc(var(--sheen-x) + 16%)
+		);
+	}
+}
+
+/* Subtler brushed finish for cards */
+@utility metal-card {
+	background-color: var(--color-metal-200);
+	background-image: linear-gradient(
+		160deg,
+		var(--color-metal-100) 0%,
+		var(--color-metal-200) 55%,
+		var(--color-metal-300) 100%
+	);
+	border: 1px solid var(--color-line);
+	box-shadow: var(--shadow-soft);
+}
+
+@layer base {
+	html {
+		background-color: var(--color-bg);
+		color: var(--color-ink);
+		font-family: var(--font-body);
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+		text-rendering: optimizeLegibility;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		html {
+			scroll-behavior: smooth;
+		}
+	}
+
+	body {
+		min-height: 100svh;
+		font-size: var(--text-body);
+		line-height: var(--leading-body);
+	}
+
+	/* Keep content clear of the fixed mobile booking bar (shown below 768px) */
+	@media (width < 48rem) {
+		body {
+			padding-bottom: calc(var(--space-mobile-bar) + env(safe-area-inset-bottom));
+		}
+	}
+
+	/* Anchor targets land below the floating navbar */
+	section[id] {
+		scroll-margin-top: var(--space-scroll-offset);
+	}
+
+	/* Sections focused programmatically after in-page navigation */
+	[tabindex='-1']:focus {
+		outline: none;
+	}
+
+	::selection {
+		background-color: var(--color-accent);
+		color: var(--color-on-accent);
+	}
+
+	/* Visible, on-brand keyboard focus everywhere */
+	:focus-visible {
+		outline: 2px solid var(--color-accent-deep);
+		outline-offset: 4px;
+		border-radius: var(--radius-sm);
+	}
+}

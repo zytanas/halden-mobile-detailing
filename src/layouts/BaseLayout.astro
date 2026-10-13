@@ -1,0 +1,45 @@
+---
+import '@fontsource/barlow-condensed/500.css';
+import '@fontsource/barlow-condensed/600.css';
+import '@fontsource/barlow-condensed/700.css';
+import '@fontsource-variable/inter-tight/wght.css';
+import '../styles/global.css';
+
+// Preload the latin subsets used above the fold so the hero headline swaps in quickly
+import displayUrl from '@fontsource/barlow-condensed/files/barlow-condensed-latin-700-normal.woff2?url';
+import sansUrl from '@fontsource-variable/inter-tight/files/inter-tight-latin-wght-normal.woff2?url';
+
+import { site } from '../config/site';
+
+interface Props {
+	title?: string;
+	description?: string;
+}
+
+const { title = `${site.name} · ${site.tagline}`, description = site.description } = Astro.props;
+const fontPreloads = [displayUrl, sansUrl];
+---
+
+<!doctype html>
+<html lang={site.locale}>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		<meta name="color-scheme" content="light" />
+		<meta name="theme-color" content={site.themeColor} />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content={site.name} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:locale" content={site.locale.replace('-', '_')} />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		{fontPreloads.map((href) => <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />)}
+		<meta name="generator" content={Astro.generator} />
+	</head>
+	<body>
+		<slot />
+	</body>
+</html>
