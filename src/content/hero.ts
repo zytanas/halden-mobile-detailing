@@ -22,7 +22,6 @@ export interface HeroContent {
 	subhead: string;
 	primaryCta: HeroLink;
 	secondaryCta: HeroLink;
-	offer: string;
 	availability: { title: string; detail: string };
 	trust: TrustItem[];
 	image: { alt: string; placeholder: string };
@@ -34,7 +33,6 @@ export const hero: HeroContent = {
 		'Premium valeting, paint correction and ceramic coating, done at your home or office. We bring our own water and power.',
 	primaryCta: { label: 'Get an instant quote', href: '#quote' },
 	secondaryCta: { label: 'See our work', href: '#results' },
-	offer: site.offer.label,
 	availability: {
 		title: `Next available: ${site.nextAvailable}`,
 		detail: `across ${site.region}`,

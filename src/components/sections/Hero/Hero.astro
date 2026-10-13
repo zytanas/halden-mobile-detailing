@@ -75,29 +75,39 @@ const heroCar = Object.values(heroImages)[0]?.default;
 						</Button>
 					</div>
 
-					<div class="mt-7 flex flex-wrap items-center gap-3">
-						<p
-							class="rounded-pill border border-accent bg-metal-100/60 px-4 py-2 text-xs font-semibold tracking-wide text-accent-deep"
-							data-hero-fade
+					<!--
+						Every item carries a left divider; the list is pulled left by padding + 1px and clipped,
+						so the first item on each row (including wrapped rows) loses its divider.
+					-->
+					<div class="mt-5 overflow-hidden" data-hero-trust>
+						<ul
+							class="-ml-2.75 flex flex-wrap items-center gap-y-1.5 text-xs text-ink-muted sm:-ml-4.25 sm:text-[0.8125rem]"
 						>
-							{hero.offer}
-						</p>
-						<div
-							class="flex items-center gap-3.5 rounded-lg border border-line bg-metal-100/70 py-3 pr-5 pl-4 shadow-soft backdrop-blur-md"
-							data-hero-fade
-						>
-							<span class="relative flex size-2.5 shrink-0" aria-hidden="true">
-								<span
-									class="absolute inset-0 animate-[ping_2.4s_var(--ease-out)_infinite] rounded-full bg-accent opacity-70 motion-reduce:animate-none"
-								>
-								</span>
-								<span class="relative size-2.5 rounded-full bg-accent"></span>
+							{
+								hero.trust.map((item) => (
+									<li class="border-l border-line px-2.5 sm:px-4">
+										<TrustBadge {...item} />
+									</li>
+								))
+							}
+						</ul>
+					</div>
+
+					<div
+						class="mt-6 flex w-fit items-center gap-3.5 rounded-lg border border-line bg-metal-100/70 py-3 pr-5 pl-4 shadow-soft backdrop-blur-md"
+						data-hero-card
+					>
+						<span class="relative flex size-2.5 shrink-0" aria-hidden="true">
+							<span
+								class="absolute inset-0 animate-[ping_2.4s_var(--ease-out)_infinite] rounded-full bg-accent opacity-70 motion-reduce:animate-none"
+							>
 							</span>
-							<p class="flex flex-col leading-snug">
-								<span class="text-sm font-semibold text-ink">{hero.availability.title}</span>
-								<span class="text-xs text-ink-muted">{hero.availability.detail}</span>
-							</p>
-						</div>
+							<span class="relative size-2.5 rounded-full bg-accent"></span>
+						</span>
+						<p class="flex flex-col leading-snug">
+							<span class="text-sm font-semibold text-ink">{hero.availability.title}</span>
+							<span class="text-xs text-ink-muted">{hero.availability.detail}</span>
+						</p>
 					</div>
 				</div>
 			</div>
@@ -144,20 +154,6 @@ const heroCar = Object.values(heroImages)[0]?.default;
 				</div>
 			</div>
 		</div>
-
-		<ul
-			class="mt-12 flex flex-wrap items-center gap-y-2 px-1 text-xs text-ink-muted sm:mt-14 sm:px-8 sm:text-[0.8125rem] lg:mt-20 lg:px-12 xl:px-14"
-			data-hero-reveal
-			data-hero-trust
-		>
-			{
-				hero.trust.map((item) => (
-					<li class="border-line px-2.5 first:pl-0 last:pr-0 not-first:border-l sm:px-4">
-						<TrustBadge {...item} />
-					</li>
-				))
-			}
-		</ul>
 	</Container>
 </section>
 

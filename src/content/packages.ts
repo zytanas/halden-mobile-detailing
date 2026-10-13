@@ -3,7 +3,16 @@
  * The Packages section renders from this file, and the price calculator will too.
  * Prices are whole pounds in site.currency.
  */
+import type { ImageMetadata } from 'astro';
 import { site } from '../config/site';
+import engineBay from '../assets/images/packages/engine-bay.webp';
+import hairRemove from '../assets/images/packages/hair-remove.webp';
+import headlight from '../assets/images/packages/headlight.webp';
+import leatherCare from '../assets/images/packages/leather-care.webp';
+import polisher from '../assets/images/packages/car-wash-detailing-station.webp';
+import snowFoam from '../assets/images/packages/snow-foam.webp';
+import steeringWheel from '../assets/images/packages/steering-wheel.webp';
+import waterBead from '../assets/images/packages/water-bead.webp';
 
 export type SizeId = 'small' | 'medium' | 'large';
 
@@ -20,7 +29,8 @@ export interface Package {
 	duration: string;
 	prices: Record<SizeId, number>;
 	badge?: string;
-	/** Describes the cut-out image this card will use */
+	image?: CardImage;
+	/** Describes the image this card uses; shown in the placeholder when there's no image */
 	imageHint: string;
 }
 
@@ -28,7 +38,14 @@ export interface AddOn {
 	id: string;
 	name: string;
 	price: number;
+	image?: CardImage;
 	imageHint: string;
+}
+
+export interface CardImage {
+	src: ImageMetadata;
+	/** CSS object-position for the square crop, e.g. '30% 50%'. Defaults to centre. */
+	focus?: string;
 }
 
 export const sizes: VehicleSize[] = [
@@ -44,7 +61,8 @@ export const packages: Package[] = [
 		description: 'Safe hand wash, wheels, tyres and a quick interior tidy.',
 		duration: '1–1.5 hrs',
 		prices: { small: 45, medium: 55, large: 65 },
-		imageHint: 'snow foam bottle cut-out',
+		image: { src: snowFoam, focus: '80% 40%' },
+		imageHint: 'snow foam cannon',
 	},
 	{
 		id: 'full-valet',
@@ -52,7 +70,8 @@ export const packages: Package[] = [
 		description: 'Deep clean inside and out, including seats, carpets and glass.',
 		duration: '3–4 hrs',
 		prices: { small: 95, medium: 115, large: 135 },
-		imageHint: 'steering wheel cut-out',
+		image: { src: steeringWheel, focus: '30% 50%' },
+		imageHint: 'steering wheel',
 	},
 	{
 		id: 'paint-enhancement',
@@ -61,7 +80,8 @@ export const packages: Package[] = [
 		duration: '5–6 hrs',
 		prices: { small: 220, medium: 260, large: 300 },
 		badge: 'Most popular',
-		imageHint: 'car polisher cut-out',
+		image: { src: polisher, focus: '40% 45%' },
+		imageHint: 'machine polisher',
 	},
 	{
 		id: 'ceramic-coating',
@@ -69,15 +89,34 @@ export const packages: Package[] = [
 		description: 'Paint correction plus a 3-year ceramic layer for lasting shine and protection.',
 		duration: '1–2 days',
 		prices: { small: 450, medium: 520, large: 600 },
-		imageHint: 'water-beaded bonnet cut-out',
+		image: { src: waterBead, focus: '35% 50%' },
+		imageHint: 'water beading on paint',
 	},
 ];
 
 export const addOns: AddOn[] = [
-	{ id: 'pet-hair', name: 'Pet hair removal', price: 20, imageHint: 'dog hair brush cut-out' },
-	{ id: 'engine-bay', name: 'Engine bay clean', price: 25, imageHint: 'engine cut-out' },
-	{ id: 'headlights', name: 'Headlight restoration', price: 35, imageHint: 'headlight cut-out' },
-	{ id: 'leather', name: 'Leather conditioning', price: 30, imageHint: 'leather seat cut-out' },
+	{
+		id: 'pet-hair',
+		name: 'Pet hair removal',
+		price: 20,
+		image: { src: hairRemove, focus: '45% 60%' },
+		imageHint: 'pet hair vacuum',
+	},
+	{
+		id: 'engine-bay',
+		name: 'Engine bay clean',
+		price: 25,
+		image: { src: engineBay, focus: '60% 50%' },
+		imageHint: 'engine bay',
+	},
+	{ id: 'headlights', name: 'Headlight restoration', price: 35, image: { src: headlight }, imageHint: 'headlight' },
+	{
+		id: 'leather',
+		name: 'Leather conditioning',
+		price: 30,
+		image: { src: leatherCare, focus: '35% 60%' },
+		imageHint: 'leather seat',
+	},
 ];
 
 /** Discount applied to fortnightly maintenance plans (0.10 = 10%) */

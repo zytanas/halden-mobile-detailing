@@ -1,8 +1,7 @@
 ---
-import type { ImageMetadata } from 'astro';
 import { Image } from 'astro:assets';
 import Icon from '../../ui/Icon.astro';
-import { formatPrice, packagesSection } from '../../../content/packages';
+import { formatPrice, packagesSection, type CardImage } from '../../../content/packages';
 
 interface Props {
 	kind: 'package' | 'addon';
@@ -13,12 +12,12 @@ interface Props {
 	duration?: string;
 	badge?: string;
 	featured?: boolean;
-	/** Transparent PNG cut-out. Omit to show a labelled placeholder in the same slot. */
-	image?: ImageMetadata;
+	/** Photo, cropped square into the slot. Omit to show a labelled placeholder in the same slot. */
+	image?: CardImage;
 	imageHint: string;
 	/** Grid placement classes */
 	class?: string;
-	/** Size of the image slot for this card's footprint */
+	/** Height of the (square) image slot, as a share of the card's height */
 	slotClass?: string;
 }
 
@@ -33,7 +32,7 @@ const {
 	image,
 	imageHint,
 	class: className,
-	slotClass = 'w-[55%]',
+	slotClass = 'h-1/2',
 } = Astro.props;
 
 const isPackage = kind === 'package';
@@ -63,12 +62,15 @@ const dataAttr = { [isPackage ? 'data-package' : 'data-addon']: id };
 		)
 	}
 
-	<!-- Image slot: anchored bottom-right, breaks past the card edge. Same box with or without an image. -->
+	<!--
+		Image slot: bottom-right, inset by the card padding so it stays inside the card.
+		Sized by height (slotClass) so it never outgrows the card. Same box with or without an image.
+	-->
 	<div
 		class:list={[
-			'pointer-events-none absolute -right-3 -bottom-3 aspect-square -rotate-3',
+			'pointer-events-none absolute right-5 bottom-5 aspect-square -rotate-2 sm:right-6 sm:bottom-6 lg:right-7 lg:bottom-7',
 			'transition-[scale,rotate] duration-700 ease-out motion-reduce:transition-none',
-			'group-hover:scale-104 group-hover:-rotate-1 group-has-focus-visible:scale-104 group-has-focus-visible:-rotate-1',
+			'group-hover:scale-103 group-hover:rotate-0 group-has-focus-visible:scale-103 group-has-focus-visible:rotate-0',
 			slotClass,
 		]}
 		aria-hidden="true"
@@ -77,11 +79,15 @@ const dataAttr = { [isPackage ? 'data-package' : 'data-addon']: id };
 		{
 			image ? (
 				<Image
-					src={image}
+					src={image.src}
 					alt=""
 					widths={[240, 400, 640]}
 					sizes="(min-width: 1024px) 22vw, 50vw"
-					class="size-full object-contain object-bottom-right drop-shadow-[0_18px_24px_color-mix(in_oklab,var(--color-ink)_30%,transparent)]"
+					class:list={[
+						'size-full rounded-lg object-cover shadow-lift ring-1',
+						featured ? 'ring-on-accent/40' : 'ring-ink/10',
+					]}
+					style={image.focus && { objectPosition: image.focus }}
 				/>
 			) : (
 				<div

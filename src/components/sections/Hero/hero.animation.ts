@@ -75,7 +75,9 @@ function playIntro(q: Query, onComplete: () => void) {
 		// 4. Copy
 		.from(split.lines, { yPercent: 110, duration: 1.1, stagger: 0.1 }, 0.45)
 		.from(q('[data-hero-fade]'), { autoAlpha: 0, y: 16, duration: 1, stagger: 0.08 }, 0.85)
-		.from(q('[data-hero-trust]'), { autoAlpha: 0, duration: 1 }, 1.2);
+		// 5. Trust row items right after the CTAs, then the availability card
+		.from(q('[data-hero-trust] li'), { autoAlpha: 0, y: 10, duration: 0.8, stagger: 0.06 }, '<0.16')
+		.from(q('[data-hero-card]'), { autoAlpha: 0, y: 16, duration: 1 }, '<0.2');
 }
 
 /** 5. One sheen sweep after the intro, then a slower, subtler one every ~10s while the hero is on screen */

@@ -14,22 +14,23 @@ const packageCards = [
 		id: 'paint-enhancement',
 		featured: true,
 		class: 'col-span-2 lg:col-start-1 lg:row-start-1',
-		slot: 'w-[44%] sm:w-[36%] lg:w-[40%]',
+		slot: 'h-[56%]',
 	},
 	{
 		id: 'full-valet',
 		class: 'col-span-2 md:col-span-1 lg:col-start-3 lg:row-start-1',
-		slot: 'w-[44%] md:w-[50%]',
+		slot: 'h-1/2',
 	},
 	{
 		id: 'ceramic-coating',
 		class: 'col-span-2 md:col-span-1 md:row-span-2 lg:col-start-4 lg:row-start-1',
-		slot: 'w-[44%] md:w-[86%]',
+		// Tall card: sit the photo above the Details link instead of beside it
+		slot: 'h-1/2 md:bottom-22! md:h-[48%]',
 	},
 	{
 		id: 'maintenance-wash',
 		class: 'col-span-2 lg:col-start-2 lg:row-start-2',
-		slot: 'w-[44%] sm:w-[36%] lg:w-[40%]',
+		slot: 'h-[56%]',
 	},
 ].map((card) => ({ ...card, pkg: getPackage(card.id) }));
 
@@ -38,7 +39,12 @@ const addOnCards = [
 	{ id: 'pet-hair', class: 'lg:col-start-1 lg:row-start-3' },
 	{ id: 'engine-bay', class: 'lg:col-start-2 lg:row-start-3' },
 	{ id: 'leather', class: 'lg:col-start-3 lg:row-start-3' },
-].map((card) => ({ ...card, addOn: getAddOn(card.id) }));
+].map((card) => ({
+	...card,
+	// Full width on phones: half-width cards are too narrow for the title, link and photo
+	class: `col-span-2 sm:col-span-1 ${card.class}`,
+	addOn: getAddOn(card.id),
+}));
 
 const copy = packagesSection;
 ---
@@ -65,6 +71,7 @@ const copy = packagesSection;
 						duration={pkg.duration}
 						badge={pkg.badge}
 						featured={featured}
+						image={pkg.image}
 						imageHint={pkg.imageHint}
 						class={placement}
 						slotClass={slot}
@@ -78,9 +85,10 @@ const copy = packagesSection;
 						id={addOn.id}
 						name={addOn.name}
 						price={addOn.price}
+						image={addOn.image}
 						imageHint={addOn.imageHint}
 						class={placement}
-						slotClass="w-[38%] sm:w-[44%]"
+						slotClass="h-1/2 sm:h-[42%]"
 					/>
 				))
 			}
