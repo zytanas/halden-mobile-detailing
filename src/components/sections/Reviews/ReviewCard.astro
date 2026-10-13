@@ -1,0 +1,53 @@
+---
+import Stars from './Stars.astro';
+import { initials, ratingLabel, reviewMeta, type Review } from '../../../content/reviews';
+
+type Props = {
+	review: Review;
+	/** In the tab order, so keyboard users can reach (and pause) moving cards. Off for marquee duplicates. */
+	focusable?: boolean;
+	class?: string;
+};
+
+const { review, focusable = true, class: className } = Astro.props;
+
+/*
+ * Muted text stays in the card's lower-left, where the brushed gradient is still at
+ * metal-200 or lighter (it only darkens towards the bottom-right corner).
+ */
+---
+
+<figure
+	class:list={['metal-card relative isolate flex flex-col overflow-hidden rounded-frame p-6', className]}
+	tabindex={focusable ? 0 : undefined}
+>
+	<!-- Decorative opening quote, behind the content -->
+	<svg
+		class="pointer-events-none absolute top-3 left-3 -z-1 h-16 w-auto text-accent opacity-15"
+		viewBox="0 0 42 34"
+		fill="currentColor"
+		aria-hidden="true"
+	>
+		<path d="M9 34A9 9 0 0 1 0 25C0 13 6 5 16 1l2 3c-6 4-8.5 8-9 12a9 9 0 0 1 9 9 9 9 0 0 1-9 9Z"></path>
+		<path d="M33 34a9 9 0 0 1-9-9c0-12 6-20 16-24l2 3c-6 4-8.5 8-9 12a9 9 0 0 1 9 9 9 9 0 0 1-9 9Z"></path>
+	</svg>
+
+	<Stars rating={review.rating} label={ratingLabel(review.rating)} />
+
+	<blockquote class="mt-4 text-[1.0625rem] leading-relaxed text-pretty text-ink">
+		<p>{review.text}</p>
+	</blockquote>
+
+	<figcaption class="mt-auto flex items-center gap-3 pt-6">
+		<span
+			class="heading grid size-11 shrink-0 place-items-center rounded-full bg-ink text-lg tracking-[0.06em] text-on-accent"
+			aria-hidden="true"
+		>
+			{initials(review.name)}
+		</span>
+		<span class="min-w-0 leading-snug">
+			<span class="block font-semibold text-ink">{review.name}</span>
+			<span class="block text-sm text-ink-muted">{reviewMeta(review)}</span>
+		</span>
+	</figcaption>
+</figure>

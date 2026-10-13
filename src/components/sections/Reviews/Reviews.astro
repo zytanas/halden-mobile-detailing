@@ -1,0 +1,121 @@
+---
+import Container from '../../ui/Container.astro';
+import Icon from '../../ui/Icon.astro';
+import RatingSummary from './RatingSummary.astro';
+import ReviewCard from './ReviewCard.astro';
+import { reviewRows, reviews, reviewsSection } from '../../../content/reviews';
+
+const copy = reviewsSection;
+
+/*
+ * Two presentations of the same reviews; only one is ever displayed:
+ * - The list: a swipe row on mobile, a 2-column grid from md. This is what no-JS and
+ *   reduced-motion visitors get.
+ * - The marquee: two rows sliding in opposite directions. Hidden until reviews.animation.ts
+ *   turns it on (md and up, motion allowed) by setting data-marquee="on" on the section.
+ * Each marquee row repeats its cards either side for a seamless loop. The repeats are
+ * aria-hidden and inert, so screen readers and keyboard users meet every review once.
+ */
+---
+
+<section id="reviews" aria-labelledby="reviews-heading" class="overflow-x-clip bg-bg py-section" data-reviews>
+	<Container>
+		<h2 id="reviews-heading" class="heading mb-10 max-w-[18ch] text-h2 text-ink lg:mb-14" data-reviews-reveal>
+			{copy.heading}
+		</h2>
+
+		<div class="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,32fr)_minmax(0,68fr)] lg:items-start lg:gap-12">
+			<RatingSummary class="lg:sticky lg:top-(--space-scroll-offset)" />
+
+			<div class="min-w-0">
+				<ul
+					class="-mx-gutter flex snap-x snap-mandatory scroll-px-gutter gap-3 overflow-x-auto overscroll-x-contain px-gutter pt-1 pb-4 scrollbar-none md:mx-0 md:grid md:grid-cols-2 md:gap-5 md:overflow-visible md:p-0 [&::-webkit-scrollbar]:hidden"
+					aria-label={copy.listLabel}
+					data-reviews-list
+				>
+					{
+						reviews.map((review) => (
+							<li class="flex shrink-0 snap-start">
+								<ReviewCard review={review} class="w-[85vw] max-w-85 md:w-full md:max-w-none" />
+							</li>
+						))
+					}
+				</ul>
+
+				<div class="reviews-marquee" role="group" aria-label={copy.listLabel} data-reviews-marquee>
+					<div class="flex flex-col gap-2">
+						{
+							reviewRows.map((row, i) => (
+								<div class="reviews-row py-3" data-reviews-row data-direction={i % 2 ? 'right' : 'left'}>
+									{/*
+										Repeat, original, repeat. Each set carries its own trailing gap (pr-5), so one
+										loop is exactly a third of the track. The leading repeat gives a focused card
+										room to slide fully into view from either side.
+									*/}
+									<div class="flex w-max" data-reviews-track>
+										{[true, false, true].map((repeat) => (
+											<ul class="flex gap-5 pr-5" aria-hidden={repeat ? 'true' : undefined} inert={repeat}>
+												{row.map((review) => (
+													<li class="flex">
+														<ReviewCard review={review} focusable={!repeat} class="w-85" />
+													</li>
+												))}
+											</ul>
+										))}
+									</div>
+								</div>
+							))
+						}
+					</div>
+
+					<button
+						type="button"
+						class="group mt-3 ml-auto flex size-11 items-center justify-center rounded-pill border border-line bg-surface text-ink shadow-soft transition-colors duration-300 ease-out hover:border-ink hover:bg-ink hover:text-on-accent focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-deep"
+						aria-label={copy.toggle.pause}
+						data-label-pause={copy.toggle.pause}
+						data-label-play={copy.toggle.play}
+						data-reviews-toggle
+					>
+						<Icon name="pause" class="size-4 group-data-paused:hidden" />
+						<Icon name="play" class="hidden size-4 group-data-paused:block" />
+					</button>
+				</div>
+			</div>
+		</div>
+	</Container>
+</section>
+
+<script>
+	import { initReviews } from './reviews.animation';
+
+	const root = document.querySelector<HTMLElement>('[data-reviews]');
+	if (root) initReviews(root);
+</script>
+
+<style>
+	/* One presentation at a time. Plain CSS so it outranks the list's responsive display utilities. */
+	.reviews-marquee {
+		display: none;
+	}
+
+	[data-marquee='on'] .reviews-marquee {
+		display: block;
+	}
+
+	[data-marquee='on'] [data-reviews-list] {
+		display: none;
+	}
+
+	/* Cards fade in and out at both ends rather than being cut off. Only the mask's alpha matters. */
+	.reviews-row {
+		--reviews-fade: 4rem;
+		overflow-x: clip;
+		mask-image: linear-gradient(
+			90deg,
+			transparent,
+			black var(--reviews-fade),
+			black calc(100% - var(--reviews-fade)),
+			transparent
+		);
+	}
+</style>

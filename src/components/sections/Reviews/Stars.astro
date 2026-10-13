@@ -1,0 +1,61 @@
+---
+import { RATING_MAX } from '../../../content/reviews';
+
+interface Props {
+	rating: number;
+	/** Accessible name, e.g. "Rated 4.9 out of 5" */
+	label: string;
+	size?: 'sm' | 'lg';
+	class?: string;
+}
+
+const { rating, label, size = 'sm', class: className } = Astro.props;
+
+const STAR = 'M12 2.5l2.94 5.95 6.56.96-4.75 4.63 1.12 6.54L12 17.5l-5.87 3.08 1.12-6.54L2.5 9.41l6.56-.96Z';
+/* The star's tips sit 2.5 units in from each side of its 24-unit box */
+const INSET = 2.5 / 24;
+
+/*
+ * Two layers of stars: empty ones underneath, accent ones on top, clipped to the rating.
+ * A partial star is clipped across its visible shape rather than its box, so 4.9 leaves a
+ * sliver of the fifth star empty instead of looking full.
+ */
+const clamped = Math.min(Math.max(rating, 0), RATING_MAX);
+const whole = Math.floor(clamped);
+const part = clamped - whole;
+const partial = part > 0 ? INSET + part * (1 - 2 * INSET) : 0;
+const fillWidth = `calc(${whole} * (var(--star) + var(--star-gap)) + ${partial.toFixed(3)} * var(--star))`;
+
+const sizes = {
+	sm: '[--star:1rem] [--star-gap:0.125rem]',
+	lg: '[--star:1.625rem] [--star-gap:0.25rem]',
+};
+
+const stars = Array.from({ length: RATING_MAX });
+---
+
+<span role="img" aria-label={label} class:list={['relative inline-flex shrink-0 align-middle', sizes[size], className]}>
+	<span class="flex gap-(--star-gap) text-line" aria-hidden="true">
+		{
+			stars.map(() => (
+				<svg class="size-(--star) shrink-0" viewBox="0 0 24 24">
+					<path d={STAR} fill="currentColor" />
+				</svg>
+			))
+		}
+	</span>
+	<span
+		class="absolute inset-y-0 left-0 flex max-w-full gap-(--star-gap) overflow-hidden text-accent"
+		style={`width: ${fillWidth}`}
+		aria-hidden="true"
+		data-stars-fill
+	>
+		{
+			stars.map(() => (
+				<svg class="size-(--star) shrink-0" viewBox="0 0 24 24">
+					<path d={STAR} fill="currentColor" />
+				</svg>
+			))
+		}
+	</span>
+</span>

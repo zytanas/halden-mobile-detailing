@@ -1,0 +1,85 @@
+---
+import Button from '../../ui/Button.astro';
+import Stars from './Stars.astro';
+import { formatScore, ratingLabel, reviewsSection, shareLabel, starsShort } from '../../../content/reviews';
+
+interface Props {
+	class?: string;
+}
+
+const { class: className } = Astro.props;
+const { summary, cta, disclaimer } = reviewsSection;
+const score = formatScore(summary.score);
+
+/*
+ * Single column on mobile and in the desktop sidebar. On tablet, where the panel runs the
+ * full width, the score and button sit on the left with the breakdown on the right.
+ */
+---
+
+<div
+	class:list={['reviews-summary metal metal-sheen rounded-xl border border-line p-7 shadow-lift sm:p-8', className]}
+	data-reviews-summary
+>
+	<div class="relative z-2 grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-x-12 lg:grid-cols-1">
+		<div>
+			<p class="flex items-baseline gap-3">
+				<span class="sr-only">{score} {summary.outOf}</span>
+				{/*
+					Final value in the HTML; the animation counts up to it. The invisible copy
+					holds the final width so "out of 5" never shifts while counting.
+				*/}
+				<span class="heading inline-grid text-display leading-[0.85] text-ink tabular-nums" aria-hidden="true">
+					<span class="invisible col-start-1 row-start-1">{score}</span>
+					<span class="col-start-1 row-start-1" data-count-to={summary.score} data-decimals="1">{score}</span>
+				</span>
+				<span class="text-lead text-ink-muted" aria-hidden="true">{summary.outOf}</span>
+			</p>
+
+			<Stars rating={summary.score} label={ratingLabel(summary.score)} size="lg" class="mt-5" />
+			<p class="mt-3 text-[0.9375rem] text-ink-muted">{summary.basedOn}</p>
+		</div>
+
+		<ul class="flex flex-col gap-2.5 md:row-span-2 md:self-center lg:row-span-1" aria-label={summary.distributionLabel}>
+			{
+				summary.distribution.map((share) => (
+					<li class="grid grid-cols-[2rem_minmax(0,1fr)_2.5rem] items-center gap-3 text-sm">
+						<span class="sr-only">{shareLabel(share)}</span>
+						<span class="font-medium text-ink tabular-nums" aria-hidden="true">
+							{starsShort(share.stars)}
+						</span>
+						<span class="h-1.5 overflow-hidden rounded-pill bg-line" aria-hidden="true">
+							<span
+								class="block h-full rounded-pill bg-accent"
+								style={`width: ${share.percent}%`}
+								data-reviews-bar
+							/>
+						</span>
+						<span class="text-right text-ink-muted tabular-nums" aria-hidden="true">
+							{share.percent}%
+						</span>
+					</li>
+				))
+			}
+		</ul>
+
+		<div>
+			<Button href={cta.href} variant="primary" class="w-full">{cta.label}</Button>
+			<p class="mt-4 text-xs text-ink-muted">{disclaimer}</p>
+		</div>
+	</div>
+</div>
+
+<style>
+	/*
+	 * Even out the panel's shading so muted text never sits on anything darker than
+	 * metal-200 (contrast rule). The sheen and border still read as metal.
+	 */
+	.reviews-summary {
+		--metal-wash: linear-gradient(
+			160deg,
+			color-mix(in oklab, var(--color-metal-200) 55%, transparent),
+			color-mix(in oklab, var(--color-metal-200) 85%, transparent)
+		);
+	}
+</style>

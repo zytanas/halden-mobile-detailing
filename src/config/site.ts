@@ -21,6 +21,8 @@ export interface SiteConfig {
 	/** Region served, used in copy like "across Greater Manchester". */
 	region: string;
 	offer: { firstDetailDiscount: number; label: string };
+	/** Loyalty club. referralDiscount is a fraction (0.15 = 15%). */
+	club: { name: string; referralDiscount: number };
 	/** Next free booking day shown in the hero. */
 	nextAvailable: string;
 	/** Browser UI colour (<meta name="theme-color">). Keep in sync with --color-bg. */
@@ -46,6 +48,7 @@ export const site: SiteConfig = {
 	rating: { score: 4.9, count: 312 },
 	region: 'Greater Manchester',
 	offer: { firstDetailDiscount: 10, label: '£10 off your first detail' },
+	club: { name: 'Halden Club', referralDiscount: 0.15 },
 	nextAvailable: 'Thursday',
 	themeColor: '#E3E5E8',
 };

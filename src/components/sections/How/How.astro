@@ -1,0 +1,139 @@
+---
+import Button from '../../ui/Button.astro';
+import Container from '../../ui/Container.astro';
+import Icon from '../../ui/Icon.astro';
+import StepCard from './StepCard.astro';
+import { howSection, steps } from '../../../content/how';
+
+const copy = howSection;
+---
+
+<section id="how" aria-labelledby="how-heading" class="overflow-x-clip bg-bg py-section" data-how>
+	<Container>
+		<div class="mb-10 flex flex-col gap-5 lg:mb-14 lg:flex-row lg:items-end lg:justify-between">
+			<h2 id="how-heading" class="heading max-w-[16ch] text-h2 text-ink" data-how-reveal>
+				{copy.heading}
+			</h2>
+			<p class="max-w-[48ch] text-lead text-ink-muted" data-how-reveal>{copy.intro}</p>
+		</div>
+
+		<div class="how-steps relative" data-how-steps>
+			<ol class="grid grid-cols-1 gap-6 md:grid-cols-3">
+				{steps.map((step) => <StepCard {...step} />)}
+			</ol>
+
+			<!--
+				Progress line. After the cards in the DOM so it paints over their backgrounds but under
+				their content. Vertical through the numbers on mobile, horizontal from md.
+			-->
+			<div class="how-line pointer-events-none absolute bg-line" aria-hidden="true" data-how-track>
+				<div class="size-full bg-accent" data-how-fill></div>
+			</div>
+		</div>
+
+		<!-- Reassurance band: the one dark moment on the silver page -->
+		<div
+			class="relative mt-6 flex flex-col overflow-hidden rounded-xl bg-ink px-6 py-8 text-on-accent sm:px-8 lg:mt-8 lg:px-10 lg:py-10 xl:flex-row xl:items-center xl:gap-10 xl:pr-30"
+			data-how-band
+		>
+			<!--
+				Diagonal accent stripe, a nod to the hero, running the full height of the band. Steeper on
+				mobile, where the stacked band is tall, so it stays clear of the checklist.
+			-->
+			<div
+				class="pointer-events-none absolute top-1/2 right-18 h-[150%] w-2.5 -translate-y-1/2 rotate-18 bg-accent md:right-28 md:rotate-28 lg:w-3 xl:right-13 xl:h-[220%]"
+				aria-hidden="true"
+			>
+			</div>
+
+			<p class="heading relative max-w-[15ch] pr-10 text-card-title text-on-accent xl:shrink-0 xl:pr-0">
+				{copy.reassurance.title}
+			</p>
+
+			<ul
+				class="relative mt-6 grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2 lg:flex lg:flex-wrap xl:mt-0 xl:flex-1"
+			>
+				{
+					copy.reassurance.items.map((item) => (
+						<li class="flex items-center gap-2.5 text-[0.9375rem] font-medium lg:whitespace-nowrap">
+							<span class="inline-flex shrink-0 text-accent" data-how-check>
+								<Icon name="check" class="size-4" />
+							</span>
+							{item}
+						</li>
+					))
+				}
+			</ul>
+
+			<Button href={copy.cta.href} variant="primary" class="relative mt-8 w-full md:w-auto md:self-start xl:mt-0 xl:shrink-0 xl:self-auto"
+			>
+				{copy.cta.label}
+			</Button>
+		</div>
+	</Container>
+</section>
+
+<script>
+	import { initHow } from './how.animation';
+
+	const root = document.querySelector<HTMLElement>('[data-how]');
+	if (root) initHow(root);
+</script>
+
+<style>
+	/*
+	 * Step geometry, shared with StepCard through inheritance. The line's centre sits at
+	 * card border (1px) + padding + half the number box; the line is 2px thick, so its offset
+	 * equals the inner measurement and the border and half-thickness cancel out.
+	 * --step-num-mid is the optical centre of the digits within their 1em line box.
+	 */
+	.how-steps {
+		--step-pad: 1.5rem;
+		--step-num: 4.5rem;
+		--step-num-mid: 0.547; /* Barlow Condensed digits sit slightly below the line box centre (measured) */
+		--step-num-box: calc(var(--step-num) * 1.05);
+		--step-line-x: calc(var(--step-pad) + var(--step-num-box) / 2);
+		--step-line-y: calc(var(--step-pad) + var(--step-num) * var(--step-num-mid));
+	}
+
+	@media (width >= 64rem) {
+		.how-steps {
+			--step-pad: 2rem;
+			--step-num: 5.25rem;
+		}
+	}
+
+	@media (width >= 80rem) {
+		.how-steps {
+			--step-num: 6rem;
+		}
+	}
+
+	/* Mobile: vertical, down through the numbers */
+	.how-line {
+		top: 0;
+		bottom: 0;
+		left: var(--step-line-x);
+		width: 2px;
+	}
+
+	.how-line [data-how-fill] {
+		transform-origin: center top;
+	}
+
+	/* md and up: horizontal, through the numbers' centres */
+	@media (width >= 48rem) {
+		.how-line {
+			top: var(--step-line-y);
+			bottom: auto;
+			left: 0;
+			right: 0;
+			width: auto;
+			height: 2px;
+		}
+
+		.how-line [data-how-fill] {
+			transform-origin: left center;
+		}
+	}
+</style>

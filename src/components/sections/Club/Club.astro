@@ -1,0 +1,146 @@
+---
+import Button from '../../ui/Button.astro';
+import Container from '../../ui/Container.astro';
+import Icon from '../../ui/Icon.astro';
+import MemberCard from './MemberCard.astro';
+import PerkCard from './PerkCard.astro';
+import { clubSection, perks } from '../../../content/club';
+
+const copy = clubSection;
+
+/*
+ * DOM order is the mobile reading order: intro, card and perks, then the form.
+ * Desktop places them on a 2-column grid: intro and form on the left, vertically centred
+ * (rows 2–3 between two flexible rows), with the card and perks spanning every row on the right.
+ *
+ * Perk staircase (desktop only): the featured middle card drops 32px and the outer two end
+ * 48px above the row's bottom, so the middle one is 16px taller. Margins rather than
+ * transforms keep the row height honest, so nothing spills into the section padding.
+ */
+---
+
+<section id="club" aria-labelledby="club-heading" class="overflow-x-clip bg-bg py-section" data-club>
+	<Container>
+		<div
+			class="grid grid-cols-1 gap-y-12 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:grid-rows-[1fr_auto_auto_1fr] lg:gap-x-12 lg:gap-y-0 xl:gap-x-20"
+		>
+			<div class="lg:col-start-1 lg:row-start-2">
+				<h2 id="club-heading" class="heading text-h2 text-ink" data-club-reveal>{copy.heading}</h2>
+				<p class="mt-5 max-w-[42ch] text-lead text-ink-muted" data-club-reveal>{copy.intro}</p>
+			</div>
+
+			<div class="flex flex-col items-center gap-10 md:gap-12 lg:col-start-2 lg:row-span-4 lg:row-start-1">
+				<MemberCard />
+
+				<ul class="grid w-full grid-cols-1 gap-4 md:grid-cols-3 lg:gap-3 xl:gap-4" aria-label={copy.perksLabel}>
+					{perks.map((perk) => <PerkCard {...perk} class={perk.featured ? 'lg:mt-8' : 'lg:mb-12'} />)}
+				</ul>
+			</div>
+
+			<div class="lg:col-start-1 lg:row-start-3 lg:mt-10" data-club-reveal>
+				<div data-club-signup>
+					<form class="max-w-xl" novalidate data-club-form data-error={copy.signup.error}>
+						<label for="club-email" class="block text-sm font-semibold text-ink">{copy.signup.label}</label>
+						<div class="mt-2 flex flex-col gap-3 sm:flex-row">
+							<input
+								id="club-email"
+								name="email"
+								type="email"
+								inputmode="email"
+								autocomplete="email"
+								spellcheck="false"
+								required
+								placeholder={copy.signup.placeholder}
+								aria-describedby="club-email-error"
+								class="min-h-13 w-full min-w-0 flex-1 rounded-pill border border-line bg-surface px-5 text-ink transition-[border-color,box-shadow] duration-300 ease-out placeholder:text-ink-muted focus:border-accent focus:shadow-[0_0_0_4px_color-mix(in_oklab,var(--color-accent)_22%,transparent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent aria-invalid:border-accent-deep"
+							/>
+							<Button type="submit" class="w-full shrink-0 sm:w-auto">{copy.signup.button}</Button>
+						</div>
+						<!-- Stays in the layout (and the accessibility tree) so the message is announced when it appears -->
+						<p
+							id="club-email-error"
+							class="mt-2 min-h-5 text-sm leading-5 font-medium text-accent-deep"
+							aria-live="polite"
+							data-club-error
+						>
+						</p>
+					</form>
+
+					<!-- Success is written in here, replacing the form -->
+					<div class="max-w-xl" role="status" aria-live="polite" tabindex="-1" data-club-status></div>
+					<template data-club-success>
+						<p
+							class="flex items-start gap-3 rounded-lg border border-line bg-surface px-5 py-4 text-[0.9375rem] font-medium text-ink shadow-soft"
+						>
+							<span class="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-accent text-on-accent">
+								<Icon name="check" class="size-3" />
+							</span>
+							{copy.signup.success}
+						</p>
+					</template>
+				</div>
+
+				<p class="mt-3 text-xs text-ink-muted">{copy.finePrint}</p>
+			</div>
+		</div>
+	</Container>
+</section>
+
+<script>
+	import { initClub } from './club.animation';
+
+	const root = document.querySelector<HTMLElement>('[data-club]');
+	if (root) {
+		initSignup(root);
+		initClub(root);
+	}
+
+	const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+	/* No backend: validate on the client, then swap the form for the success message */
+	function initSignup(root: HTMLElement) {
+		const form = root.querySelector<HTMLFormElement>('[data-club-form]');
+		const input = form?.querySelector<HTMLInputElement>('input[type="email"]');
+		const error = form?.querySelector<HTMLElement>('[data-club-error]');
+		const status = root.querySelector<HTMLElement>('[data-club-status]');
+		const success = root.querySelector<HTMLTemplateElement>('[data-club-success]');
+		if (!form || !input || !error || !status || !success) return;
+
+		const isValid = () => input.validity.valid && EMAIL.test(input.value.trim());
+
+		const showError = () => {
+			input.setAttribute('aria-invalid', 'true');
+			// Clear first, so submitting the same mistake twice is announced again
+			error.textContent = '';
+			requestAnimationFrame(() => (error.textContent = form.dataset.error ?? ''));
+		};
+
+		const clearError = () => {
+			input.removeAttribute('aria-invalid');
+			error.textContent = '';
+		};
+
+		// Once flagged, clear the error as soon as the address becomes valid
+		input.addEventListener('input', () => {
+			if (input.hasAttribute('aria-invalid') && isValid()) clearError();
+		});
+
+		form.addEventListener('submit', (event) => {
+			event.preventDefault();
+			if (!isValid()) {
+				showError();
+				input.focus();
+				return;
+			}
+
+			// TODO: connect a real email service here (e.g. POST input.value to the newsletter
+			// provider's API), and only show success once it responds OK.
+
+			clearError();
+			status.replaceChildren(success.content.cloneNode(true));
+			form.hidden = true;
+			// The focused button has gone, so move focus to the message
+			status.focus();
+		});
+	}
+</script>

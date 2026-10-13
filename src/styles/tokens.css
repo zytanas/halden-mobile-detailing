@@ -97,6 +97,10 @@
 		0 8px 24px -12px color-mix(in oklab, var(--color-ink) 18%, transparent);
 	--shadow-lift: 0 2px 4px color-mix(in oklab, var(--color-ink) 8%, transparent),
 		0 18px 40px -16px color-mix(in oklab, var(--color-ink) 30%, transparent);
+	/* Layered, so an object reads as hovering well above the page (member card) */
+	--shadow-float: 0 1px 2px color-mix(in oklab, var(--color-ink) 8%, transparent),
+		0 10px 20px -8px color-mix(in oklab, var(--color-ink) 16%, transparent),
+		0 36px 64px -24px color-mix(in oklab, var(--color-ink) 38%, transparent);
 	--shadow-accent: 0 10px 28px -10px color-mix(in oklab, var(--color-accent) 60%, transparent);
 
 	/* Motion */

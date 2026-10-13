@@ -2,13 +2,15 @@
 import type { HTMLAttributes } from 'astro/types';
 import Icon from './Icon.astro';
 
-type Props = HTMLAttributes<'a'> & {
-	href: string;
+/** A link by default; pass `type` instead of `href` for a form <button>. */
+type Props = Omit<HTMLAttributes<'a'>, 'type'> & {
 	variant?: 'primary' | 'dark' | 'outline' | 'link';
 	size?: 'md' | 'sm';
-};
+} & ({ href: string; type?: never } | { href?: never; type: 'submit' | 'button' });
 
-const { href, variant = 'primary', size = 'md', class: className, ...rest } = Astro.props;
+const { href, type, variant = 'primary', size = 'md', class: className, ...rest } = Astro.props;
+
+const Tag = href === undefined ? 'button' : 'a';
 
 const sizes = {
 	md: 'min-h-13 px-7 text-[0.9375rem]',
@@ -40,8 +42,9 @@ const variants = {
 };
 ---
 
-<a
+<Tag
 	href={href}
+	type={type}
 	class:list={[
 		'inline-flex items-center justify-center gap-2.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-deep',
 		variants[variant],
@@ -58,4 +61,4 @@ const variants = {
 			/>
 		)
 	}
-</a>
+</Tag>
