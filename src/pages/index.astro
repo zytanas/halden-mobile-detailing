@@ -8,12 +8,12 @@ import Results from '../components/sections/Results/Results.astro';
 import How from '../components/sections/How/How.astro';
 import Club from '../components/sections/Club/Club.astro';
 import Reviews from '../components/sections/Reviews/Reviews.astro';
+import Faq from '../components/sections/Faq/Faq.astro';
 import Container from '../components/ui/Container.astro';
 
 // TODO: temporary placeholder sections so navbar active states and anchor scrolling can be tested.
 // Remove each entry as the real section is built.
 const placeholderSections = [
-	{ id: 'faq', label: 'FAQ' },
 	{ id: 'contact', label: 'Contact' },
 	{ id: 'quote', label: 'Quote' },
 ];
@@ -28,6 +28,7 @@ const placeholderSections = [
 		<How />
 		<Club />
 		<Reviews />
+		<Faq />
 
 		{/* TODO: placeholder sections, replace with real sections */}
 		{

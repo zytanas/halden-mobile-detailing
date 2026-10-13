@@ -1,0 +1,250 @@
+---
+import Button from '../../ui/Button.astro';
+import Container from '../../ui/Container.astro';
+import Icon from '../../ui/Icon.astro';
+import FaqItem from './FaqItem.astro';
+import { faqSection, faqs, plainAnswer } from '../../../content/faq';
+
+const copy = faqSection;
+const { help } = copy;
+
+const structuredData = {
+	'@context': 'https://schema.org',
+	'@type': 'FAQPage',
+	mainEntity: faqs.map((faq) => ({
+		'@type': 'Question',
+		name: faq.question,
+		acceptedAnswer: { '@type': 'Answer', text: plainAnswer(faq.answer) },
+	})),
+};
+// Escape "<" so no answer text can ever close the script tag
+const jsonLd = JSON.stringify(structuredData).replace(/</g, '\\u003c');
+
+/*
+ * DOM order is the mobile reading order: heading and intro, the questions, then the help card.
+ * Desktop is two columns: heading, intro and card on the left, questions on the right.
+ * The script moves the card into the left column there, so the column can stick as one piece
+ * while the list scrolls past. Without JS the card simply sits under the intro.
+ */
+---
+
+<section id="faq" aria-labelledby="faq-heading" class="bg-bg py-section" data-faq>
+	<Container>
+		<div
+			class="grid grid-cols-1 gap-y-10 md:gap-y-12 lg:grid-cols-[minmax(0,36fr)_minmax(0,64fr)] lg:grid-rows-[auto_1fr] lg:gap-x-16 lg:gap-y-0 xl:gap-x-24"
+			data-faq-grid
+		>
+			<div class="faq-aside lg:col-start-1 lg:row-start-1 lg:self-start" data-faq-aside>
+				<h2 id="faq-heading" class="heading text-h2 text-ink" data-faq-reveal>{copy.heading}</h2>
+				<p class="mt-5 max-w-[42ch] text-lead text-ink-muted" data-faq-reveal>{copy.intro}</p>
+			</div>
+
+			<div class="flex flex-col gap-2 lg:col-start-2 lg:row-span-2 lg:row-start-1" data-faq-list>
+				{faqs.map((faq, i) => <FaqItem faq={faq} name="faq" open={i === 0} />)}
+			</div>
+
+			<div
+				class="faq-help metal-card rounded-xl p-7 md:grid md:grid-cols-2 md:gap-x-10 lg:col-start-1 lg:row-start-2 lg:mt-10 lg:block lg:self-start"
+				data-faq-help
+				data-faq-reveal
+			>
+				<div>
+					<h3 class="heading text-card-title text-ink">{help.title}</h3>
+					<p class="mt-3 max-w-[40ch] text-ink-muted">{help.text}</p>
+				</div>
+
+				<div class="mt-6 md:mt-0 lg:mt-6">
+					<ul class="flex flex-col gap-2">
+						{
+							[
+								{ ...help.phone, icon: 'phone' as const },
+								{ ...help.email, icon: 'mail' as const },
+							].map((contact) => (
+								<li>
+									<a
+										href={contact.href}
+										class="inline-flex items-center gap-2.5 font-medium text-ink transition-colors duration-300 ease-out hover:text-accent-deep"
+									>
+										<Icon name={contact.icon} class="size-4 shrink-0" />
+										<span class="sr-only">{contact.label}: </span>
+										<span class="wrap-anywhere">{contact.value}</span>
+									</a>
+								</li>
+							))
+						}
+					</ul>
+					<p class="mt-3 text-sm text-ink-muted">{help.hours}</p>
+
+					<div class="mt-6 flex flex-col gap-3 sm:flex-row">
+						<Button href={help.call.href} class="sm:flex-1">{help.call.label}</Button>
+						<Button href={help.write.href} variant="outline" class="sm:flex-1">{help.write.label}</Button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</Container>
+
+	<script is:inline type="application/ld+json" set:html={jsonLd} />
+</section>
+
+<script>
+	import { collapse, expand, hidePanel, initFaq } from './faq.animation';
+
+	const root = document.querySelector<HTMLElement>('[data-faq]');
+	if (root) {
+		initAccordion(root);
+		initLayout(root);
+		initFaq(root);
+	}
+
+	interface Item {
+		el: HTMLElement;
+		button: HTMLButtonElement;
+		panel: HTMLElement;
+	}
+
+	/** Copies every attribute except the ones that only make sense on the old element */
+	function copyAttributes(from: Element, to: Element, skip: string[]) {
+		for (const { name, value } of from.attributes) {
+			if (!skip.includes(name)) to.setAttribute(name, value);
+		}
+	}
+
+	/*
+	 * Rebuilds each <details> as the ARIA accordion pattern: an h3 > button with aria-expanded
+	 * and aria-controls, and a labelled region that animates open and closed. Classes and
+	 * data attributes carry over, so the swap is invisible.
+	 */
+	function initAccordion(root: HTMLElement) {
+		const list = root.querySelector<HTMLElement>('[data-faq-list]');
+		if (!list) return;
+
+		const setState = (item: Item, open: boolean) => {
+			item.el.toggleAttribute('data-open', open);
+			item.button.setAttribute('aria-expanded', String(open));
+		};
+
+		const isOpen = (item: Item) => item.el.hasAttribute('data-open');
+
+		const items: Item[] = [...list.querySelectorAll<HTMLDetailsElement>('details[data-faq-item]')].flatMap(
+			(details) => {
+				const summary = details.querySelector('summary');
+				const panel = details.querySelector<HTMLElement>('[data-faq-panel]');
+				if (!summary || !panel) return [];
+
+				const el = document.createElement('div');
+				copyAttributes(details, el, ['open', 'name']);
+
+				const heading = document.createElement('h3');
+				const button = document.createElement('button');
+				copyAttributes(summary, button, []);
+				button.type = 'button';
+				button.setAttribute('aria-controls', panel.id);
+				button.append(...summary.childNodes);
+				heading.append(button);
+
+				panel.setAttribute('role', 'region');
+				panel.setAttribute('aria-labelledby', button.id);
+
+				const open = details.open;
+				el.append(heading, panel);
+				details.replaceWith(el);
+
+				const item = { el, button, panel };
+				setState(item, open);
+				if (!open) hidePanel(panel);
+				return [item];
+			},
+		);
+
+		// One open at a time; clicking the open question closes it
+		const toggle = (target: Item) => {
+			const opening = !isOpen(target);
+			for (const item of items) {
+				if (item === target || !isOpen(item)) continue;
+				setState(item, false);
+				collapse(item.panel);
+			}
+			setState(target, opening);
+			if (opening) expand(target.panel);
+			else collapse(target.panel);
+		};
+
+		items.forEach((item) => {
+			item.button.addEventListener('click', () => toggle(item));
+			// Find-in-page matched text in a closed answer: the browser reveals it, we open the item
+			item.panel.addEventListener('beforematch', () => {
+				if (!isOpen(item)) toggle(item);
+			});
+		});
+
+		// Up/Down move between questions (wrapping), Home/End jump to the first and last
+		list.addEventListener('keydown', (event) => {
+			const index = items.findIndex((item) => item.button === event.target);
+			if (index === -1) return;
+			const last = items.length - 1;
+			const next = {
+				ArrowDown: index === last ? 0 : index + 1,
+				ArrowUp: index === 0 ? last : index - 1,
+				Home: 0,
+				End: last,
+			}[event.key];
+			if (next === undefined) return;
+			event.preventDefault();
+			items[next].button.focus();
+		});
+	}
+
+	/*
+	 * Desktop: move the help card into the left column, which then sticks as one piece
+	 * (see the style below). Narrower: put it back at the end, after the questions.
+	 */
+	function initLayout(root: HTMLElement) {
+		const grid = root.querySelector<HTMLElement>('[data-faq-grid]');
+		const aside = root.querySelector<HTMLElement>('[data-faq-aside]');
+		const card = root.querySelector<HTMLElement>('[data-faq-help]');
+		if (!grid || !aside || !card) return;
+
+		const desktop = window.matchMedia('(min-width: 64rem)');
+		const place = () => {
+			const pinned = desktop.matches;
+			if (pinned === (card.parentElement === aside)) return;
+			// Moving a node blurs it, so hand focus back if it was inside
+			const focused = card.contains(document.activeElement) ? (document.activeElement as HTMLElement) : null;
+			(pinned ? aside : grid).append(card);
+			root.toggleAttribute('data-faq-pinned', pinned);
+			focused?.focus();
+		};
+
+		place();
+		desktop.addEventListener('change', place);
+	}
+</script>
+
+<style>
+	/*
+	 * Keep muted text on metal-200 or lighter (contrast rule): the hours sit low in the card,
+	 * where metal-card's gradient would otherwise darken towards metal-300.
+	 */
+	.faq-help {
+		background-image: linear-gradient(160deg, var(--color-metal-100) 0%, var(--color-metal-200) 60%);
+	}
+
+	/*
+	 * The pinned column spans the whole list's height and sticks below the navbar, stopping at
+	 * the end of the grid (inside the section's padding). Only where the viewport is tall enough
+	 * to show the whole column; otherwise its bottom would be unreachable while stuck.
+	 */
+	@media (min-width: 64rem) {
+		[data-faq-pinned] .faq-aside {
+			grid-row: 1 / -1;
+		}
+	}
+
+	@media (min-width: 64rem) and (min-height: 50rem) {
+		[data-faq-pinned] .faq-aside {
+			position: sticky;
+			top: var(--space-scroll-offset);
+		}
+	}
+</style>
