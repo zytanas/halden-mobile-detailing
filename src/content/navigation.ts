@@ -11,7 +11,6 @@ export const navigation = {
 		{ label: 'Club', href: '#club' },
 		{ label: 'Reviews', href: '#reviews' },
 		{ label: 'FAQ', href: '#faq' },
-		{ label: 'Contact', href: '#contact' },
 	] satisfies NavLink[],
 	cta: { label: 'Get a quote', href: '#quote' },
 	homeLabel: 'back to top',

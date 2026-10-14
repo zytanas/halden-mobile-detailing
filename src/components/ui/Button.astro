@@ -1,57 +1,20 @@
 ---
 import type { HTMLAttributes } from 'astro/types';
 import Icon from './Icon.astro';
+import { buttonClass, type ButtonSize, type ButtonVariant } from './button';
 
-/** A link by default; pass `type` instead of `href` for a form <button>. */
+/** A link by default; pass `type` instead of `href` for a form <button>. Classes live in button.ts. */
 type Props = Omit<HTMLAttributes<'a'>, 'type'> & {
-	variant?: 'primary' | 'dark' | 'outline' | 'link';
-	size?: 'md' | 'sm';
+	variant?: ButtonVariant;
+	size?: ButtonSize;
 } & ({ href: string; type?: never } | { href?: never; type: 'submit' | 'button' });
 
 const { href, type, variant = 'primary', size = 'md', class: className, ...rest } = Astro.props;
 
 const Tag = href === undefined ? 'button' : 'a';
-
-const sizes = {
-	md: 'min-h-13 px-7 text-[0.9375rem]',
-	sm: 'min-h-10 px-5 text-sm',
-};
-
-const pill = ['rounded-pill font-semibold active:scale-[0.98]', sizes[size]];
-
-const variants = {
-	primary: [
-		pill,
-		'bg-accent text-on-accent transition-[background-color,box-shadow,scale] duration-300 ease-out',
-		'hover:bg-accent-deep hover:shadow-accent',
-	],
-	dark: [
-		pill,
-		'bg-ink text-on-accent transition-[background-color,box-shadow,scale] duration-300 ease-out',
-		'hover:bg-accent hover:shadow-accent',
-	],
-	outline: [
-		pill,
-		'border border-ink text-ink transition-[background-color,color,scale] duration-300 ease-out',
-		'hover:bg-ink hover:text-on-accent',
-	],
-	link: [
-		'group min-h-13 rounded-pill px-1 text-[0.9375rem] font-semibold text-ink',
-		'transition-colors duration-300 ease-out hover:text-accent-deep',
-	],
-};
 ---
 
-<Tag
-	href={href}
-	type={type}
-	class:list={[
-		'inline-flex items-center justify-center gap-2.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-deep',
-		variants[variant],
-		className,
-	]}
-	{...rest}
->
+<Tag href={href} type={type} class:list={[buttonClass({ variant, size }), className]} {...rest}>
 	<slot />
 	{
 		variant === 'link' && (

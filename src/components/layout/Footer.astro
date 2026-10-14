@@ -1,0 +1,155 @@
+---
+import Button from '../ui/Button.astro';
+import Container from '../ui/Container.astro';
+import Icon from '../ui/Icon.astro';
+import Logo from '../ui/Logo.astro';
+import { site } from '../../config/site';
+import { footer } from '../../content/footer';
+import { navigation } from '../../content/navigation';
+
+const { cta, contact } = footer;
+const year = new Date().getFullYear();
+
+const contactLinks = [
+	{ label: contact.phoneLabel, value: site.phone, href: site.phoneHref, icon: 'phone' as const },
+	{ label: contact.emailLabel, value: site.email, href: `mailto:${site.email}`, icon: 'mail' as const },
+];
+
+const columnTitle = 'text-sm font-semibold text-on-accent';
+const linkClass = 'rounded-sm transition-colors duration-300 ease-out hover:text-on-accent';
+
+/*
+ * The CTA band sits on the page background and overlaps the top of the ink area, which
+ * starts halfway down the band (negative margin + matching padding).
+ * The wordmark is SVG text stretched to the viewBox width, so it always fills the row exactly.
+ */
+---
+
+<footer class="relative overflow-x-clip" data-footer>
+	<Container class="relative z-10">
+		<div
+			class="footer-cta metal metal-sheen isolate overflow-hidden rounded-panel border border-metal-100/80 shadow-lift"
+		>
+			<!-- The hero's racing stripes, on the right -->
+			<div class="pointer-events-none absolute inset-0 hidden overflow-hidden rounded-panel md:block" aria-hidden="true">
+				<div class="absolute -top-1/2 left-[80%] flex h-[220%] rotate-28 gap-3 xl:left-[82%] xl:gap-3.5">
+					<div class="h-full w-16 bg-accent lg:w-24 xl:w-32"></div>
+					<div class="h-full w-6 bg-accent-deep lg:w-8 xl:w-11"></div>
+				</div>
+			</div>
+
+			<div class="relative z-2 p-7 sm:p-10 md:max-w-[68%] lg:p-14">
+				<h2 class="heading text-h2 text-ink">{cta.title}</h2>
+				<p class="mt-4 text-lead text-ink-muted">{cta.text}</p>
+				<div class="mt-8 flex flex-col gap-3 sm:flex-row">
+					<Button href={cta.primary.href}>{cta.primary.label}</Button>
+					<Button href={cta.call.href} variant="outline">
+						<Icon name="phone" class="size-4" />
+						<span class="tabular-nums">{cta.call.label}</span>
+					</Button>
+				</div>
+			</div>
+		</div>
+	</Container>
+
+	<div class="-mt-32 bg-ink pt-48 text-metal-300 lg:-mt-40 lg:pt-56">
+		<Container>
+			<div class="grid grid-cols-1 gap-10 text-sm sm:grid-cols-2 lg:grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,1fr))] lg:gap-12">
+				<div>
+					<Logo tone="light" />
+					<p class="mt-5 max-w-[30ch] text-[0.9375rem] leading-relaxed">{footer.blurb}</p>
+					<ul class="mt-6 flex gap-2.5" aria-label={footer.socialLabel}>
+						{
+							footer.social.map((link) => (
+								<li>
+									<a
+										href={link.href}
+										aria-label={link.label}
+										class="grid size-10 place-items-center rounded-full border border-on-accent/20 text-on-accent transition-colors duration-300 ease-out hover:border-accent hover:bg-accent"
+									>
+										<Icon name={link.icon} class="size-4.5" />
+									</a>
+								</li>
+							))
+						}
+					</ul>
+				</div>
+
+				<div>
+					<h2 class={columnTitle}>{contact.title}</h2>
+					<ul class="mt-4 flex flex-col gap-3">
+						{
+							contactLinks.map((item) => (
+								<li>
+									<a href={item.href} class:list={['inline-flex items-center gap-2.5', linkClass]}>
+										<Icon name={item.icon} class="size-4 shrink-0 text-accent" />
+										<span class="sr-only">{item.label}: </span>
+										<span class="wrap-anywhere tabular-nums">{item.value}</span>
+									</a>
+								</li>
+							))
+						}
+						<li class="inline-flex items-center gap-2.5">
+							<Icon name="clock" class="size-4 shrink-0 text-accent" />
+							<span><span class="sr-only">{contact.hoursLabel}: </span>{site.hours}</span>
+						</li>
+					</ul>
+				</div>
+
+				<div>
+					<h2 class={columnTitle}>{footer.areasTitle}</h2>
+					<ul class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-1">
+						{site.serviceAreas.map((area) => <li>{area}</li>)}
+					</ul>
+				</div>
+
+				<nav aria-labelledby="footer-links-title">
+					<h2 id="footer-links-title" class={columnTitle}>{footer.linksTitle}</h2>
+					<ul class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-1">
+						{
+							[...navigation.links, ...footer.legal].map((link) => (
+								<li>
+									<a href={link.href} class={linkClass}>
+										{link.label}
+									</a>
+								</li>
+							))
+						}
+					</ul>
+				</nav>
+			</div>
+
+			<svg
+				class="mt-16 block h-auto w-full text-on-accent/8 lg:mt-24"
+				viewBox="0 0 1000 268"
+				aria-hidden="true"
+				data-footer-wordmark
+			>
+				<text
+					x="0"
+					y="262"
+					textLength="1000"
+					lengthAdjust="spacingAndGlyphs"
+					fill="currentColor"
+					class="font-display text-[372px] font-bold">{footer.wordmark}</text
+				>
+			</svg>
+
+			<p class="border-t border-on-accent/10 py-6 text-xs leading-relaxed text-metal-400">
+				{footer.copyright(year)}
+			</p>
+		</Container>
+	</div>
+</footer>
+
+<style>
+	/* Keep the copy side at metal-200 or lighter (muted-text contrast rule); shading stays on the stripe side */
+	.footer-cta {
+		--metal-wash: linear-gradient(
+			to right,
+			color-mix(in oklab, var(--color-metal-200) 90%, transparent) 0%,
+			color-mix(in oklab, var(--color-metal-200) 90%, transparent) 55%,
+			transparent 85%
+		);
+	}
+</style>

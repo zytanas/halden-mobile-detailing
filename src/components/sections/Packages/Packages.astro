@@ -114,7 +114,32 @@ const copy = packagesSection;
 
 <script>
 	import { initPackages } from './packages.animation';
+	import { PRESELECT_EVENT, type Preselect } from '../../../lib/events';
 
 	const root = document.querySelector<HTMLElement>('[data-packages]');
-	if (root) initPackages(root);
+	if (root) {
+		initPreselect(root);
+		initPackages(root);
+	}
+
+	/*
+	 * "Details" links pass their package or add-on to the quote builder. The link's own
+	 * href then scrolls to #quote. The choice is also left on window in case the builder
+	 * hasn't hydrated yet; it reads (and clears) it on mount.
+	 */
+	function initPreselect(root: HTMLElement) {
+		root.addEventListener('click', (event) => {
+			const link = (event.target as Element).closest<HTMLElement>('[data-package], [data-addon]');
+			if (!link) return;
+			const { package: packageId, addon } = link.dataset;
+			const detail: Preselect | null = packageId
+				? { kind: 'package', id: packageId }
+				: addon
+					? { kind: 'addon', id: addon }
+					: null;
+			if (!detail) return;
+			window.__haldenPreselect = detail;
+			window.dispatchEvent(new CustomEvent(PRESELECT_EVENT, { detail }));
+		});
+	}
 </script>

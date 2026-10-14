@@ -1,0 +1,194 @@
+---
+import Container from '../../ui/Container.astro';
+import QuoteBuilder from '../../islands/QuoteBuilder';
+import { quoteSection } from '../../../content/quote';
+
+const copy = quoteSection;
+
+/*
+ * Postcode check and price builder in one. The builder island renders on the server too,
+ * so the steps and summary are in the HTML before it hydrates (client:idle).
+ */
+---
+
+<section id="quote" aria-labelledby="quote-heading" class="overflow-x-clip bg-bg py-section" data-quote>
+	<Container>
+		<div class="mb-10 flex flex-col gap-5 lg:mb-14 lg:flex-row lg:items-end lg:justify-between">
+			<h2 id="quote-heading" class="heading text-h2 text-ink" data-quote-reveal>{copy.heading}</h2>
+			<p class="max-w-[44ch] text-lead text-ink-muted" data-quote-reveal>{copy.intro}</p>
+		</div>
+
+		<QuoteBuilder client:idle />
+	</Container>
+</section>
+
+<script>
+	import { initQuote } from './quote.animation';
+
+	const root = document.querySelector<HTMLElement>('[data-quote]');
+	if (root) initQuote(root);
+</script>
+
+<style is:global>
+	/*
+	 * Summary card: keep the text area at metal-200 or lighter (muted-text contrast rule),
+	 * letting the shading show through only towards the bottom-right edge.
+	 */
+	.quote-summary {
+		--metal-wash: radial-gradient(
+			ellipse 120% 110% at 0% 0%,
+			color-mix(in oklab, var(--color-metal-200) 88%, transparent) 0%,
+			color-mix(in oklab, var(--color-metal-200) 88%, transparent) 70%,
+			transparent 100%
+		);
+	}
+
+	/* Card picked from the Packages bento: a brief red glow */
+	[data-quote-option][data-highlight] {
+		animation: quote-highlight 0.9s var(--ease-out) 2;
+	}
+
+	@keyframes quote-highlight {
+		from {
+			box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-accent) 55%, transparent);
+		}
+		to {
+			box-shadow: 0 0 0 14px color-mix(in oklab, var(--color-accent) 0%, transparent);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		[data-quote-option][data-highlight] {
+			animation: none;
+			box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-accent) 35%, transparent);
+		}
+	}
+
+	/* ---------- Area map (Leaflet) ---------- */
+
+	.area-map .leaflet-container {
+		font-family: var(--font-body);
+		background-color: var(--color-metal-200);
+	}
+
+	/* Fallback OpenStreetMap tiles, greyed and lifted to sit close to CARTO Positron */
+	.area-map-muted .leaflet-tile-pane {
+		filter: grayscale(1) contrast(0.82) brightness(1.1);
+	}
+
+	/* Town marker: small accent dot with a white ring */
+	.area-marker {
+		display: grid;
+		place-items: center;
+	}
+
+	.area-marker-dot {
+		position: relative;
+		width: 14px;
+		height: 14px;
+		border-radius: 50%;
+		background-color: var(--color-accent);
+		border: 3px solid var(--color-metal-100);
+		box-shadow: var(--shadow-soft);
+		transition: scale var(--duration-fast) var(--ease-out);
+	}
+
+	.area-marker:hover .area-marker-dot,
+	.area-marker:focus-visible .area-marker-dot {
+		scale: 1.2;
+	}
+
+	.area-marker:focus-visible {
+		outline: 2px solid var(--color-accent-deep);
+		outline-offset: 2px;
+		border-radius: 50%;
+	}
+
+	/* Checked town: bigger, with a ripple */
+	.area-marker.is-active .area-marker-dot {
+		scale: 1.3;
+	}
+
+	.area-marker.is-active .area-marker-dot::after {
+		content: '';
+		position: absolute;
+		inset: -3px;
+		border-radius: 50%;
+		border: 2px solid var(--color-accent);
+		animation: area-pulse 1.6s var(--ease-out) 3;
+		opacity: 0;
+	}
+
+	@keyframes area-pulse {
+		from {
+			opacity: 0.9;
+			scale: 1;
+		}
+		to {
+			opacity: 0;
+			scale: 3.2;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.area-marker.is-active .area-marker-dot::after {
+			animation: none;
+			opacity: 1;
+			scale: 1.8;
+		}
+	}
+
+	/* Zoom buttons and popups in the site's style */
+	.area-map .leaflet-bar {
+		border: 1px solid var(--color-line);
+		border-radius: var(--radius-md);
+		box-shadow: var(--shadow-soft);
+		overflow: hidden;
+	}
+
+	.area-map .leaflet-bar a {
+		width: 34px;
+		height: 34px;
+		line-height: 32px;
+		color: var(--color-ink);
+		background-color: var(--color-metal-100);
+		border-bottom-color: var(--color-line);
+		transition:
+			background-color var(--duration-fast) var(--ease-out),
+			color var(--duration-fast) var(--ease-out);
+	}
+
+	.area-map .leaflet-bar a:hover,
+	.area-map .leaflet-bar a:focus-visible {
+		background-color: var(--color-ink);
+		color: var(--color-on-accent);
+	}
+
+	.area-map .leaflet-bar a.leaflet-disabled {
+		background-color: var(--color-metal-200);
+		color: var(--color-ink-muted);
+	}
+
+	.area-map .leaflet-popup-content-wrapper {
+		border-radius: var(--radius-md);
+		box-shadow: var(--shadow-lift);
+		color: var(--color-ink);
+	}
+
+	.area-map .leaflet-popup-content {
+		margin: 10px 14px;
+		font-size: var(--text-small);
+		font-weight: 600;
+		line-height: 1.4;
+	}
+
+	.area-map .leaflet-control-attribution {
+		font-size: 10px;
+		background-color: color-mix(in oklab, var(--color-metal-100) 85%, transparent);
+		color: var(--color-ink-muted);
+	}
+
+	.area-map .leaflet-control-attribution a {
+		color: var(--color-ink);
+	}
+</style>

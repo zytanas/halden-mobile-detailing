@@ -42,7 +42,7 @@ import { mobileBar } from '../../content/navigation';
 			state.pastHero = true;
 		}
 
-		// Don't compete with the quote form itself (skipped until that section exists)
+		// Don't compete with the quote builder, which shows its own summary bar on mobile
 		const quote = document.getElementById('quote');
 		if (quote) {
 			new IntersectionObserver(([entry]) => {

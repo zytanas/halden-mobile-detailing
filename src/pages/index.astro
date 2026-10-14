@@ -2,21 +2,15 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/layout/Header.astro';
 import MobileBar from '../components/layout/MobileBar.astro';
+import Footer from '../components/layout/Footer.astro';
 import Hero from '../components/sections/Hero/Hero.astro';
 import Packages from '../components/sections/Packages/Packages.astro';
+import Quote from '../components/sections/Quote/Quote.astro';
 import Results from '../components/sections/Results/Results.astro';
 import How from '../components/sections/How/How.astro';
 import Club from '../components/sections/Club/Club.astro';
 import Reviews from '../components/sections/Reviews/Reviews.astro';
 import Faq from '../components/sections/Faq/Faq.astro';
-import Container from '../components/ui/Container.astro';
-
-// TODO: temporary placeholder sections so navbar active states and anchor scrolling can be tested.
-// Remove each entry as the real section is built.
-const placeholderSections = [
-	{ id: 'contact', label: 'Contact' },
-	{ id: 'quote', label: 'Quote' },
-];
 ---
 
 <BaseLayout>
@@ -24,29 +18,13 @@ const placeholderSections = [
 	<main>
 		<Hero />
 		<Packages />
+		<Quote />
 		<Results />
 		<How />
 		<Club />
 		<Reviews />
 		<Faq />
-
-		{/* TODO: placeholder sections, replace with real sections */}
-		{
-			placeholderSections.map((section) => (
-				<section
-					id={section.id}
-					aria-labelledby={`${section.id}-heading`}
-					class="flex min-h-[60vh] items-center border-t border-dashed border-line bg-bg"
-				>
-					<Container>
-						<h2 id={`${section.id}-heading`} class="heading text-h3 text-ink">
-							{section.label}
-						</h2>
-						<p class="mt-2 text-sm text-ink-muted">Coming soon</p>
-					</Container>
-				</section>
-			))
-		}
 	</main>
+	<Footer />
 	<MobileBar />
 </BaseLayout>

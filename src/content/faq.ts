@@ -75,7 +75,7 @@ export const faqs: Faq[] = [
 	{
 		id: 'areas',
 		question: 'What areas do you cover?',
-		answer: `We cover ${areas}. Check your postcode in our [service area checker](#contact).`,
+		answer: `We cover ${areas}. Check your postcode in our [postcode checker](#quote).`,
 	},
 	{
 		id: 'payment',

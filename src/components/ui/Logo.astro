@@ -4,16 +4,20 @@ import { navigation } from '../../content/navigation';
 import logomark from '../../assets/images/logo/halden-logomark.svg';
 
 interface Props {
+	/** "light" for dark backgrounds (footer): the mark is turned white with a filter */
+	tone?: 'ink' | 'light';
 	class?: string;
 }
 
-const { class: className } = Astro.props;
+const { tone = 'ink', class: className } = Astro.props;
+const light = tone === 'light';
 ---
 
 <a
 	href="#top"
 	class:list={[
-		'inline-flex items-center gap-2.5 rounded-sm text-ink transition-opacity duration-300 hover:opacity-80',
+		'inline-flex items-center gap-2.5 rounded-sm transition-opacity duration-300 hover:opacity-80',
+		light ? 'text-on-accent' : 'text-ink',
 		className,
 	]}
 	aria-label={`${site.name}, ${navigation.homeLabel}`}
@@ -26,7 +30,7 @@ const { class: className } = Astro.props;
 		alt=""
 		aria-hidden="true"
 		decoding="async"
-		class="h-6 w-auto"
+		class:list={['h-6 w-auto', light && 'brightness-0 invert']}
 	/>
 	<span class="text-sm font-semibold tracking-logo uppercase">{site.shortName}</span>
 </a>

@@ -88,14 +88,13 @@ const copy = clubSection;
 
 <script>
 	import { initClub } from './club.animation';
+	import { isValidEmail } from '../../../lib/email';
 
 	const root = document.querySelector<HTMLElement>('[data-club]');
 	if (root) {
 		initSignup(root);
 		initClub(root);
 	}
-
-	const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 	/* No backend: validate on the client, then swap the form for the success message */
 	function initSignup(root: HTMLElement) {
@@ -106,7 +105,7 @@ const copy = clubSection;
 		const success = root.querySelector<HTMLTemplateElement>('[data-club-success]');
 		if (!form || !input || !error || !status || !success) return;
 
-		const isValid = () => input.validity.valid && EMAIL.test(input.value.trim());
+		const isValid = () => input.validity.valid && isValidEmail(input.value);
 
 		const showError = () => {
 			input.setAttribute('aria-invalid', 'true');
