@@ -38,8 +38,9 @@ const heroCar = Object.values(heroImages)[0]?.default;
 				class="pointer-events-none absolute inset-0 hidden overflow-hidden rounded-panel lg:block"
 				aria-hidden="true"
 			>
+				<!-- Extra length either end (same centre, so the same angle and position), so the stripes can slide along their diagonal on scroll -->
 				<div
-					class="absolute -top-1/4 left-[84%] flex h-[150%] rotate-28 gap-3 xl:left-[81%] xl:gap-3.5"
+					class="absolute -top-1/2 left-[84%] flex h-[200%] rotate-28 gap-3 xl:left-[81%] xl:gap-3.5"
 					data-hero-stripes
 				>
 					<div class="h-full w-24 bg-accent xl:w-36" data-hero-stripe></div>
@@ -53,7 +54,7 @@ const heroCar = Object.values(heroImages)[0]?.default;
 				data-hero-content
 			>
 				<div>
-					<h1 id="hero-heading" class="heading text-hero">
+					<h1 id="hero-heading" class="heading text-hero" data-hero-headline>
 						{
 							hero.headline.map((line) => (
 								<span class:list={['block', line.accent ? 'text-accent' : 'text-ink']} data-hero-line>

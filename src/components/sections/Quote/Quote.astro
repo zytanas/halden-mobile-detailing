@@ -14,11 +14,14 @@ const copy = quoteSection;
 <section id="quote" aria-labelledby="quote-heading" class="overflow-x-clip bg-bg py-section" data-quote>
 	<Container>
 		<div class="mb-10 flex flex-col gap-5 lg:mb-14 lg:flex-row lg:items-end lg:justify-between">
-			<h2 id="quote-heading" class="heading text-h2 text-ink" data-quote-reveal>{copy.heading}</h2>
-			<p class="max-w-[44ch] text-lead text-ink-muted" data-quote-reveal>{copy.intro}</p>
+			<h2 id="quote-heading" class="heading text-h2 text-ink" data-reveal="lines">{copy.heading}</h2>
+			<p class="max-w-[44ch] text-lead text-ink-muted" data-reveal data-reveal-delay="0.1">{copy.intro}</p>
 		</div>
 
-		<QuoteBuilder client:idle />
+		<!-- The steps inside carry data-reveal-item; the summary card has its own reveal -->
+		<div data-reveal="stagger" data-reveal-stagger="0.1">
+			<QuoteBuilder client:idle />
+		</div>
 	</Container>
 </section>
 

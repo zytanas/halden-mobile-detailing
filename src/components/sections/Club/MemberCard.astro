@@ -14,48 +14,51 @@ const { card } = clubSection;
 /*
  * Everything inside the card is sized in cqw (percent of the card's width), so it scales
  * as one object like a real card: the stripes always pass between the chip and the text.
- * The stage holds the perspective for the entrance and pointer tilt (club.animation.ts);
- * the card itself is what rotates.
+ * The stage holds the perspective. Two layers rotate inside it (club.animation.ts): the
+ * scroll layer turns the card in as the section arrives, and the card itself takes the
+ * pointer tilt once that has settled. preserve-3d lets the tilt stay 3D inside the turn.
  */
 ---
 
 <div class:list={['@container w-full max-w-105 perspective-distant', className]} data-club-card-stage>
 	<p class="sr-only">{card.description}</p>
 
-	<div
-		class="club-card metal metal-sheen aspect-[1.586] rounded-frame border border-line shadow-float"
-		aria-hidden="true"
-		data-club-card
-	>
-		<!-- Two thin racing stripes, clipped to the card (echoing the hero) -->
-		<div class="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
-			<div class="absolute top-1/2 left-[61%] flex h-[220%] -translate-y-1/2 rotate-28 gap-[1.4cqw]">
-				<div class="h-full w-[2.9cqw] bg-accent"></div>
-				<div class="h-full w-[1.2cqw] bg-accent-deep"></div>
-			</div>
-		</div>
-
-		<!-- Content sits above the sheen (z-1) -->
-		<div class="relative z-2 flex h-full flex-col justify-between p-[5.7cqw]">
-			<div class="flex items-start justify-between">
-				<div class="flex items-center gap-[2.4cqw]">
-					<!-- At most ~20px tall (4.8cqw of a 420px card); 1x and 2x WebP -->
-					<Image src={logomark} height={24} densities={[1, 2]} alt="" class="h-[4.8cqw] w-auto" />
-					<span class="heading text-[5.2cqw] tracking-[0.1em] text-ink">{site.club.name}</span>
+	<div class="transform-3d" data-club-card-scroll>
+		<div
+			class="club-card metal metal-sheen aspect-[1.586] rounded-frame border border-line shadow-float"
+			aria-hidden="true"
+			data-club-card
+		>
+			<!-- Two thin racing stripes, clipped to the card (echoing the hero) -->
+			<div class="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
+				<div class="absolute top-1/2 left-[61%] flex h-[220%] -translate-y-1/2 rotate-28 gap-[1.4cqw]">
+					<div class="h-full w-[2.9cqw] bg-accent"></div>
+					<div class="h-full w-[1.2cqw] bg-accent-deep"></div>
 				</div>
-
-				<!-- Chip -->
-				<span class="club-chip relative block h-[7.6cqw] w-[10.5cqw] rounded-[1.6cqw] bg-accent"></span>
 			</div>
-
-			<div class="flex items-end justify-between gap-[4cqw]">
-				<div>
-					<p class="text-[3.3cqw] leading-none font-medium tracking-[0.16em] whitespace-nowrap text-ink tabular-nums">
-						{card.number}
-					</p>
-					<p class="mt-[1.8cqw] text-[2.7cqw] leading-none text-ink-muted">{card.since}</p>
+	
+			<!-- Content sits above the sheen (z-1) -->
+			<div class="relative z-2 flex h-full flex-col justify-between p-[5.7cqw]">
+				<div class="flex items-start justify-between">
+					<div class="flex items-center gap-[2.4cqw]">
+						<!-- At most ~20px tall (4.8cqw of a 420px card); 1x and 2x WebP -->
+						<Image src={logomark} height={24} densities={[1, 2]} alt="" class="h-[4.8cqw] w-auto" />
+						<span class="heading text-[5.2cqw] tracking-[0.1em] text-ink">{site.club.name}</span>
+					</div>
+	
+					<!-- Chip -->
+					<span class="club-chip relative block h-[7.6cqw] w-[10.5cqw] rounded-[1.6cqw] bg-accent"></span>
 				</div>
-				<p class="heading text-[3.6cqw] tracking-eyebrow text-ink">{card.label}</p>
+	
+				<div class="flex items-end justify-between gap-[4cqw]">
+					<div>
+						<p class="text-[3.3cqw] leading-none font-medium tracking-[0.16em] whitespace-nowrap text-ink tabular-nums">
+							{card.number}
+						</p>
+						<p class="mt-[1.8cqw] text-[2.7cqw] leading-none text-ink-muted">{card.since}</p>
+					</div>
+					<p class="heading text-[3.6cqw] tracking-eyebrow text-ink">{card.label}</p>
+				</div>
 			</div>
 		</div>
 	</div>

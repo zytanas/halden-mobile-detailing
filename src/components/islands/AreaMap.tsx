@@ -66,6 +66,8 @@ export default function AreaMap({ focus, className = '' }: Props) {
 			className={`area-map ${mapTiles.muted ? 'area-map-muted' : ''} relative isolate h-80 overflow-hidden rounded-frame border border-line bg-metal-200 ${className}`}
 			role="region"
 			aria-label={copy.label}
+			// Wheel and drag over the map scroll natively rather than through Lenis
+			data-lenis-prevent
 		>
 			{libs ? (
 				<LeafletMap libs={libs} focus={focus} />

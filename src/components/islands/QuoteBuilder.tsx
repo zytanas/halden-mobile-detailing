@@ -4,7 +4,8 @@
  *
  * Every choice is a real radio or checkbox inside a fieldset, styled as a card, so arrow
  * keys, Space and screen readers all work natively. The section script (quote.animation.ts)
- * adds the entrance motion and the tap on selection.
+ * adds the tap on selection; entrances come from lib/reveal.ts (data-reveal-item on each
+ * step, data-reveal on the summary).
  */
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import AreaMap, { type MapFocus } from './AreaMap';
@@ -523,7 +524,7 @@ export default function QuoteBuilder() {
 				</div>
 
 				<label className="group mt-2 flex cursor-pointer items-center gap-3 self-start rounded-sm text-[0.9375rem] font-medium text-ink has-focus-visible:outline-2 has-focus-visible:outline-offset-4 has-focus-visible:outline-accent-deep"
-					data-quote-step
+					data-reveal-item
 					suppressHydrationWarning
 				>
 					<input
@@ -543,7 +544,7 @@ export default function QuoteBuilder() {
 			<aside
 				aria-label={copy.summary.title}
 				className="quote-summary metal metal-sheen hidden rounded-xl border border-metal-100/80 p-7 shadow-lift lg:sticky lg:top-(--space-scroll-offset) lg:block xl:p-9"
-				data-quote-summary
+				data-reveal="scale"
 				suppressHydrationWarning
 			>
 				<div className="relative z-2">
@@ -625,7 +626,7 @@ function Step({ number, title, children }: { number: number; title: string; chil
 	return (
 		<fieldset
 			className="@container min-w-0 rounded-xl border border-line bg-surface p-5 sm:p-7"
-			data-quote-step
+			data-reveal-item
 			suppressHydrationWarning
 		>
 			<legend className="float-left mb-5 flex w-full items-center gap-3">

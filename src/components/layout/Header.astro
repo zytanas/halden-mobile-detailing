@@ -20,8 +20,19 @@ const callLabel = `${navigation.callLabel} ${site.phone}`;
 >
 	<div class="mx-auto w-full max-w-site px-gutter">
 		<div
-			class="pointer-events-auto flex h-14 items-center justify-between gap-4 rounded-pill border border-line bg-metal-100/75 pr-2 pl-5 shadow-soft backdrop-blur-xl lg:h-16 lg:pr-2.5 lg:pl-7"
+			class="pointer-events-auto relative flex h-14 items-center justify-between gap-4 rounded-pill border border-line bg-metal-100/75 pr-2 pl-5 shadow-soft backdrop-blur-xl lg:h-16 lg:pr-2.5 lg:pl-7"
+			data-header-bar
 		>
+			<!--
+				Page scroll progress along the capsule's bottom edge, inset clear of the rounded ends.
+				Starts at zero via an inline transform (GSAP scales it); stays at zero with reduced motion.
+			-->
+			<span
+				class="pointer-events-none absolute inset-x-7 -bottom-px h-0.5 origin-left rounded-pill bg-accent lg:inset-x-8"
+				style="transform: scaleX(0)"
+				aria-hidden="true"
+				data-scroll-progress></span>
+
 			<Logo />
 
 			<nav aria-label={navigation.navLabel} class="hidden lg:block">
@@ -86,6 +97,7 @@ const callLabel = `${navigation.callLabel} ${site.phone}`;
 	aria-label={navigation.menuLabel}
 	hidden
 	data-menu
+	data-lenis-prevent
 >
 	<div class="mx-auto w-full max-w-site px-gutter pt-3">
 		<div class="flex h-14 items-center justify-between pr-2 pl-5">
@@ -147,6 +159,8 @@ const callLabel = `${navigation.callLabel} ${site.phone}`;
 <script>
 	import { gsap } from '../../lib/gsap';
 	import { prefersReducedMotion } from '../../lib/motion';
+	import { onMotion } from '../../lib/media';
+	import { scrollToHash } from '../../lib/scroll';
 	import { MENU_TOGGLE_EVENT } from '../../lib/events';
 
 	const menu = document.querySelector<HTMLElement>('[data-menu]');
@@ -154,6 +168,18 @@ const callLabel = `${navigation.callLabel} ${site.phone}`;
 	const closeButton = menu?.querySelector<HTMLButtonElement>('[data-menu-close]');
 
 	let menuOpen = false;
+
+	/* ---------- Scroll progress ---------- */
+	const progress = document.querySelector<HTMLElement>('[data-scroll-progress]');
+	if (progress) {
+		onMotion(() => {
+			gsap.fromTo(
+				progress,
+				{ scaleX: 0 },
+				{ scaleX: 1, ease: 'none', scrollTrigger: { start: 0, end: 'max', scrub: 0.3 } },
+			);
+		});
+	}
 
 	/* ---------- Active section highlighting ---------- */
 	const navLinks = [...document.querySelectorAll<HTMLAnchorElement>('[data-nav-link]')];
@@ -284,20 +310,9 @@ const callLabel = `${navigation.callLabel} ${site.phone}`;
 			event.preventDefault();
 
 			const hash = link.hash || '#top';
+			// Closing restarts smooth scrolling, so the jump below can use it
 			await closeMenu({ returnFocus: false });
-
-			const behavior: ScrollBehavior = prefersReducedMotion() ? 'auto' : 'smooth';
-			const target = hash === '#top' ? null : document.querySelector<HTMLElement>(hash);
-			history.pushState(null, '', hash);
-
-			if (target) {
-				target.scrollIntoView({ behavior, block: 'start' });
-				if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
-				target.focus({ preventScroll: true });
-			} else {
-				window.scrollTo({ top: 0, behavior });
-				openButton.focus({ preventScroll: true });
-			}
+			if (!scrollToHash(hash)) openButton.focus({ preventScroll: true });
 		});
 
 		// Close if the viewport grows into the desktop layout

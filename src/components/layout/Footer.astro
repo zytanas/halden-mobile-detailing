@@ -31,6 +31,7 @@ const linkClass = 'rounded-sm transition-colors duration-300 ease-out hover:text
  * The CTA band sits on the page background and overlaps the top of the ink area, which
  * starts halfway down the band (negative margin + matching padding).
  * The wordmark is SVG text stretched to the viewBox width, so it always fills the row exactly.
+ * footer.animation.ts slides the stripes in and draws the wordmark's letters together on scroll.
  */
 ---
 
@@ -42,15 +43,15 @@ const linkClass = 'rounded-sm transition-colors duration-300 ease-out hover:text
 			<!-- The hero's racing stripes, on the right -->
 			<div class="pointer-events-none absolute inset-0 hidden overflow-hidden rounded-panel md:block" aria-hidden="true">
 				<div class="absolute -top-1/2 left-[80%] flex h-[220%] rotate-28 gap-3 xl:left-[82%] xl:gap-3.5">
-					<div class="h-full w-16 bg-accent lg:w-24 xl:w-32"></div>
-					<div class="h-full w-6 bg-accent-deep lg:w-8 xl:w-11"></div>
+					<div class="h-full w-16 bg-accent lg:w-24 xl:w-32" data-footer-stripe></div>
+					<div class="h-full w-6 bg-accent-deep lg:w-8 xl:w-11" data-footer-stripe></div>
 				</div>
 			</div>
 
 			<div class="relative z-2 p-7 sm:p-10 md:max-w-[68%] lg:p-14">
-				<h2 class="heading text-h2 text-ink">{cta.title}</h2>
-				<p class="mt-4 text-lead text-ink-muted">{cta.text}</p>
-				<div class="mt-8 flex flex-col gap-3 sm:flex-row">
+				<h2 class="heading text-h2 text-ink" data-reveal="lines">{cta.title}</h2>
+				<p class="mt-4 text-lead text-ink-muted" data-reveal data-reveal-delay="0.1">{cta.text}</p>
+				<div class="mt-8 flex flex-col gap-3 sm:flex-row" data-reveal data-reveal-delay="0.2">
 					<Button href={homeHref(cta.primary.href, pathname)}>{cta.primary.label}</Button>
 					<Button href={cta.call.href} variant="outline">
 						<Icon name="phone" class="size-4" />
@@ -61,9 +62,10 @@ const linkClass = 'rounded-sm transition-colors duration-300 ease-out hover:text
 		</div>
 	</Container>
 
-	<div class="-mt-32 bg-ink pt-48 text-metal-300 lg:-mt-40 lg:pt-56">
+	<!-- Clipped so the wordmark, which starts lower down, never adds scroll height below the page -->
+	<div class="-mt-32 overflow-clip bg-ink pt-48 text-metal-300 lg:-mt-40 lg:pt-56">
 		<Container>
-			<div class="grid grid-cols-1 gap-10 text-sm sm:grid-cols-2 lg:grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,1fr))] lg:gap-12">
+			<div class="grid grid-cols-1 gap-10 text-sm sm:grid-cols-2 lg:grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,1fr))] lg:gap-12" data-reveal="stagger">
 				<div>
 					<Logo tone="light" />
 					<p class="mt-5 max-w-[30ch] text-[0.9375rem] leading-relaxed">{footer.blurb}</p>
@@ -133,7 +135,7 @@ const linkClass = 'rounded-sm transition-colors duration-300 ease-out hover:text
 			</div>
 
 			<svg
-				class="mt-16 block h-auto w-full text-on-accent/8 lg:mt-24"
+				class="mt-16 block h-auto w-full overflow-visible text-on-accent/8 lg:mt-24"
 				viewBox="0 0 1000 268"
 				aria-hidden="true"
 				data-footer-wordmark
@@ -166,3 +168,10 @@ const linkClass = 'rounded-sm transition-colors duration-300 ease-out hover:text
 		);
 	}
 </style>
+
+<script>
+	import { initFooter } from './footer.animation';
+
+	const root = document.querySelector<HTMLElement>('[data-footer]');
+	if (root) initFooter(root);
+</script>

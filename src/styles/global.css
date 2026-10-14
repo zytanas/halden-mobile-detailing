@@ -210,6 +210,29 @@
 		html {
 			scroll-behavior: smooth;
 		}
+
+		/* Lenis (lib/scroll.ts) eases the scroll itself; native smoothing on top would fight it */
+		html.lenis {
+			scroll-behavior: auto;
+		}
+		/*
+		 * Reveal starting states (lib/reveal.ts). Only with JS (html.js, set in BaseLayout) and only
+		 * until the script has taken over (html.reveal-ready), so nothing can stay hidden for good.
+		 */
+		html.js:not(.reveal-ready)
+			:is(
+				[data-reveal]:not([data-reveal='stagger']),
+				[data-reveal='stagger']:not(:has([data-reveal-item])) > *,
+				[data-reveal='stagger'] [data-reveal-item]
+			) {
+			opacity: 0;
+		}
+	}
+
+	/* Room for split-line masks around the tight display line-height */
+	.reveal-line-mask {
+		padding: 0.06em 0.05em 0.1em;
+		margin: -0.06em -0.05em -0.1em;
 	}
 
 	body {
@@ -246,4 +269,14 @@
 		outline-offset: 4px;
 		border-radius: var(--radius-sm);
 	}
+}
+
+/*
+ * Lenis contains overscroll in [data-lenis-prevent] areas, meant for scroll panes. The map
+ * (overflow: hidden) and the reviews swipe row (horizontal only) just hand the wheel back to
+ * the browser; a vertical wheel over them must still scroll the page. Unlayered, like
+ * lenis.css, or that stylesheet would win regardless of specificity.
+ */
+html.lenis :is(.area-map, [data-reviews-list])[data-lenis-prevent] {
+	overscroll-behavior-y: auto;
 }

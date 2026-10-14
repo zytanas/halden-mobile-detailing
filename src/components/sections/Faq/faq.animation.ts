@@ -8,34 +8,10 @@ const EASE = 'expo.out';
 const DURATION = 0.4;
 
 /*
- * The markup ships finished (everything visible, first answer open), which is what reduced
- * motion and no-JS users see. Everything below rewinds it and plays it back.
- * Opacity rather than autoAlpha throughout, so links and buttons stay in the tab order.
+ * Accordion motion. Entrances (heading, intro, questions, help card) come from lib/reveal.ts
+ * via data-reveal in Faq.astro. Opacity rather than autoAlpha throughout, so links and
+ * buttons stay in the tab order.
  */
-export function initFaq(root: HTMLElement) {
-	if (prefersReducedMotion()) return;
-
-	const q = gsap.utils.selector(root);
-
-	// Heading, intro and help card. Batched, so on mobile the card waits until it's on screen.
-	const reveal = q('[data-faq-reveal]');
-	gsap.set(reveal, { opacity: 0, y: 24 });
-	ScrollTrigger.batch(reveal, {
-		start: 'top 88%',
-		once: true,
-		onEnter: (batch) =>
-			gsap.to(batch, { opacity: 1, y: 0, duration: 1, ease: EASE, stagger: 0.1, clearProps: 'transform,opacity' }),
-	});
-
-	const items = q('[data-faq-item]');
-	gsap.set(items, { opacity: 0, y: 16 });
-	ScrollTrigger.batch(items, {
-		start: 'top 92%',
-		once: true,
-		onEnter: (batch) =>
-			gsap.to(batch, { opacity: 1, y: 0, duration: 0.8, ease: EASE, stagger: 0.06, clearProps: 'transform,opacity' }),
-	});
-}
 
 /** Closed panels are "until-found", so find-in-page can still reach (and open) them */
 export function hidePanel(panel: HTMLElement) {

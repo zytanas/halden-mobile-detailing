@@ -39,8 +39,27 @@ const fontPreloads = [displayUrl, sansUrl];
 		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 		{fontPreloads.map((href) => <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />)}
 		<meta name="generator" content={Astro.generator} />
+		<script is:inline>
+			// JS is running: reveal targets may start hidden (see global.css). Failsafe: if the
+			// reveal script hasn't taken over within 4s, show everything as it is.
+			(function () {
+				var d = document.documentElement;
+				d.classList.add('js');
+				setTimeout(function () {
+					d.classList.add('reveal-ready');
+				}, 4000);
+			})();
+		</script>
 	</head>
 	<body>
 		<slot />
 	</body>
 </html>
+
+<script>
+	import { initScroll } from '../lib/scroll';
+	import { initReveal } from '../lib/reveal';
+
+	initScroll();
+	initReveal();
+</script>

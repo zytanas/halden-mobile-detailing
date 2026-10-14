@@ -35,18 +35,19 @@ const jsonLd = JSON.stringify(structuredData).replace(/</g, '\\u003c');
 			data-faq-grid
 		>
 			<div class="faq-aside lg:col-start-1 lg:row-start-1 lg:self-start" data-faq-aside>
-				<h2 id="faq-heading" class="heading text-h2 text-ink" data-faq-reveal>{copy.heading}</h2>
-				<p class="mt-5 max-w-[42ch] text-lead text-ink-muted" data-faq-reveal>{copy.intro}</p>
+				<h2 id="faq-heading" class="heading text-h2 text-ink" data-reveal="lines">{copy.heading}</h2>
+				<p class="mt-5 max-w-[42ch] text-lead text-ink-muted" data-reveal data-reveal-delay="0.1">{copy.intro}</p>
 			</div>
 
-			<div class="flex flex-col gap-2 lg:col-start-2 lg:row-span-2 lg:row-start-1" data-faq-list>
+			<div class="flex flex-col gap-2 lg:col-start-2 lg:row-span-2 lg:row-start-1" data-faq-list data-reveal="stagger" data-reveal-stagger="0.06">
 				{faqs.map((faq, i) => <FaqItem faq={faq} name="faq" open={i === 0} />)}
 			</div>
 
 			<div
 				class="faq-help metal-card rounded-xl p-7 md:grid md:grid-cols-2 md:gap-x-10 lg:col-start-1 lg:row-start-2 lg:mt-10 lg:block lg:self-start"
 				data-faq-help
-				data-faq-reveal
+				data-reveal="scale"
+				data-reveal-delay="0.2"
 			>
 				<div>
 					<h3 class="heading text-card-title text-ink">{help.title}</h3>
@@ -88,13 +89,12 @@ const jsonLd = JSON.stringify(structuredData).replace(/</g, '\\u003c');
 </section>
 
 <script>
-	import { collapse, expand, hidePanel, initFaq } from './faq.animation';
+	import { collapse, expand, hidePanel } from './faq.animation';
 
 	const root = document.querySelector<HTMLElement>('[data-faq]');
 	if (root) {
 		initAccordion(root);
 		initLayout(root);
-		initFaq(root);
 	}
 
 	interface Item {

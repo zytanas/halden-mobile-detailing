@@ -1,62 +1,52 @@
 import { gsap, ScrollTrigger } from '../../../lib/gsap';
 import { prefersReducedMotion } from '../../../lib/motion';
+import { onMotion, type Motion } from '../../../lib/media';
 import { formatStat } from '../../../content/results';
 
-// Matches --ease-out: cubic-bezier(0.16, 1, 0.3, 1)
-const EASE = 'expo.out';
-
+/*
+ * Entrances come from lib/reveal.ts (data-reveal in the markup). This adds the featured
+ * slider opening up with the scroll, and the proof-strip counters, which run once.
+ */
 export function initResults(root: HTMLElement) {
 	if (prefersReducedMotion()) return;
 
-	const q = gsap.utils.selector(root);
+	const featured = root.querySelector<HTMLElement>('[data-results-featured]');
+	if (featured) onMotion((m) => openFeatured(featured, m));
 
-	// Heading and intro
-	const intro = q('[data-results-reveal]');
-	gsap.set(intro, { autoAlpha: 0, y: 24 });
-	ScrollTrigger.create({
-		trigger: root,
-		start: 'top 80%',
-		once: true,
-		onEnter: () => gsap.to(intro, { autoAlpha: 1, y: 0, duration: 1, ease: EASE, stagger: 0.1 }),
-	});
+	const strip = root.querySelector<HTMLElement>('[data-results-stats]');
+	if (strip) initCounters(strip);
+}
 
-	// Slider frames, in DOM order (featured first)
-	const frames = q('[data-results-frame]');
-	gsap.set(frames, { autoAlpha: 0, y: 24 });
-	ScrollTrigger.create({
-		trigger: frames[0],
-		start: 'top 85%',
-		once: true,
-		onEnter: () =>
-			gsap.to(frames, {
-				autoAlpha: 1,
-				y: 0,
-				duration: 1,
-				ease: EASE,
-				stagger: 0.12,
-				clearProps: 'transform,opacity,visibility',
-			}),
-	});
+/*
+ * Featured frame: a narrow band down the middle widens to the full frame as it scrolls in,
+ * scrubbed so it closes again on the way back up. The end state reaches past the frame's
+ * edges so its shadow isn't clipped once it's open.
+ */
+function openFeatured(frame: HTMLElement, m: Motion) {
+	const band = { mobile: 30, tablet: 36, desktop: 42 }[m.device];
+	gsap.fromTo(
+		frame,
+		{ clipPath: `inset(6% ${band}% 6% ${band}% round 20px)` },
+		{
+			clipPath: 'inset(-8% -4% -8% -4% round 20px)',
+			ease: 'power2.out',
+			scrollTrigger: { trigger: frame, start: 'top bottom', end: 'top 35%', scrub: 0.6 },
+		},
+	);
+	return () => gsap.set(frame, { clearProps: 'clipPath' });
+}
 
-	// Proof strip fades in, then the counters run
-	const strip = q('[data-results-stats]')[0] as HTMLElement | undefined;
-	if (!strip) return;
+/* Counters start at zero and run the first time the strip arrives; they never replay */
+function initCounters(strip: HTMLElement) {
 	const counters = gsap.utils.toArray<HTMLElement>('[data-count-to]', strip);
-	gsap.set(strip, { autoAlpha: 0, y: 24 });
+	if (!counters.length) return;
+	counters.forEach((el) => (el.textContent = formatStat(0, Number(el.dataset.decimals) || 0)));
+
 	ScrollTrigger.create({
 		trigger: strip,
 		start: 'top 88%',
 		once: true,
-		onEnter: () => {
-			gsap.to(strip, {
-				autoAlpha: 1,
-				y: 0,
-				duration: 0.8,
-				ease: EASE,
-				clearProps: 'transform,opacity,visibility',
-				onStart: () => counters.forEach((el) => countUp(el, 0.2)),
-			});
-		},
+		onEnter: () => counters.forEach((el) => countUp(el, 0.3)),
 	});
 }
 
@@ -67,7 +57,6 @@ function countUp(el: HTMLElement, delay: number) {
 
 	// Width is reserved in the markup (StatCounter.astro), so no measuring here
 	const counter = { value: 0 };
-	el.textContent = formatStat(0, decimals);
 	gsap.to(counter, {
 		value: target,
 		duration: 1.4,

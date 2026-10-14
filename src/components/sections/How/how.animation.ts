@@ -1,57 +1,58 @@
 import { gsap, ScrollTrigger } from '../../../lib/gsap';
 import { prefersReducedMotion } from '../../../lib/motion';
-
-// Matches --ease-out: cubic-bezier(0.16, 1, 0.3, 1)
-const EASE = 'expo.out';
+import { onMotion } from '../../../lib/media';
+import { REVEAL_END_EVENT, REVEAL_START_EVENT } from '../../../lib/events';
 
 /*
  * The markup ships in its finished state (line drawn, every step active), which is what
- * reduced motion and no-JS users see. Everything below rewinds it and plays it back.
+ * reduced motion and no-JS users see. Entrances come from lib/reveal.ts (data-reveal in the
+ * markup); this adds the scrubbed progress line and the checklist pop.
  */
 export function initHow(root: HTMLElement) {
 	if (prefersReducedMotion()) return;
 
 	const q = gsap.utils.selector(root);
 	const wrap = q('[data-how-steps]')[0] as HTMLElement | undefined;
+	const list = q('[data-how-list]')[0] as HTMLElement | undefined;
 	const track = q('[data-how-track]')[0] as HTMLElement | undefined;
 	const fill = q('[data-how-fill]')[0] as HTMLElement | undefined;
 	const steps = q('[data-how-step]') as HTMLElement[];
-	if (!wrap || !track || !fill || !steps.length) return;
+	if (!wrap || !list || !track || !fill || !steps.length) return;
 
-	// Heading and intro
-	const intro = q('[data-how-reveal]');
-	gsap.set(intro, { autoAlpha: 0, y: 24 });
-	ScrollTrigger.create({
-		trigger: root,
-		start: 'top 80%',
-		once: true,
-		onEnter: () => gsap.to(intro, { autoAlpha: 1, y: 0, duration: 1, ease: EASE, stagger: 0.1 }),
-	});
-
-	// Cards stagger in. The track waits until they've landed: while a card is transformed it
-	// becomes a stacking context and the line would briefly paint over its content.
-	gsap.set(steps, { autoAlpha: 0, y: 24 });
-	gsap.set(track, { autoAlpha: 0 });
-	ScrollTrigger.create({
-		trigger: wrap,
-		start: 'top 85%',
-		once: true,
-		onEnter: () =>
-			gsap.to(steps, {
-				autoAlpha: 1,
-				y: 0,
-				duration: 1,
-				ease: EASE,
-				stagger: 0.12,
-				clearProps: 'transform,opacity,visibility',
-				onComplete: () => {
-					gsap.to(track, { autoAlpha: 1, duration: 0.4 });
-				},
-			}),
-	});
-
+	onMotion(() => syncTrack(list, track, steps));
 	initLine(wrap, track, fill, steps);
-	initBand(q('[data-how-band]')[0] as HTMLElement | undefined);
+	initChecks(q('[data-how-band]')[0] as HTMLElement | undefined);
+}
+
+/*
+ * The cards reveal (and hide again) with the scroll. While a card is moving it's a stacking
+ * context, and the line, which normally paints between a card's background and its content,
+ * would paint over the whole card. So the line drops behind the cards while any of them
+ * moves (the wrapper is isolated, so "behind" stays inside it), and only shows at all while
+ * at least one card is visible.
+ */
+function syncTrack(list: HTMLElement, track: HTMLElement, steps: HTMLElement[]) {
+	gsap.set(track, { autoAlpha: 0 });
+
+	let frame = 0;
+	const check = () => {
+		frame = 0;
+		const moving = steps.some((step) => gsap.isTweening(step));
+		const visible = moving || steps.some((step) => step.style.opacity !== '0');
+		track.style.zIndex = moving ? '-1' : '';
+		gsap.to(track, { autoAlpha: visible ? 1 : 0, duration: 0.3, overwrite: true });
+	};
+	// After the tween's first render, so the cards' opacity is current
+	const schedule = () => (frame ||= requestAnimationFrame(check));
+
+	list.addEventListener(REVEAL_START_EVENT, schedule);
+	list.addEventListener(REVEAL_END_EVENT, schedule);
+	return () => {
+		cancelAnimationFrame(frame);
+		list.removeEventListener(REVEAL_START_EVENT, schedule);
+		list.removeEventListener(REVEAL_END_EVENT, schedule);
+		track.style.zIndex = '';
+	};
 }
 
 /*
@@ -112,23 +113,17 @@ function initLine(wrap: HTMLElement, track: HTMLElement, fill: HTMLElement, step
 	});
 }
 
-/* Band slides up, then the checks pop in one by one */
-function initBand(band: HTMLElement | undefined) {
+/* The checks pop in one by one, the first time the band arrives; never replayed */
+function initChecks(band: HTMLElement | undefined) {
 	if (!band) return;
 	const checks = gsap.utils.toArray<HTMLElement>('[data-how-check]', band);
+	if (!checks.length) return;
 
-	gsap.set(band, { autoAlpha: 0, y: 40 });
 	gsap.set(checks, { scale: 0 });
-
 	ScrollTrigger.create({
 		trigger: band,
-		start: 'top 88%',
+		start: 'top 80%',
 		once: true,
-		onEnter: () => {
-			gsap
-				.timeline()
-				.to(band, { autoAlpha: 1, y: 0, duration: 1, ease: EASE, clearProps: 'transform,opacity,visibility' })
-				.to(checks, { scale: 1, duration: 0.5, ease: 'back.out(2.5)', stagger: 0.1 }, '-=0.6');
-		},
+		onEnter: () => gsap.to(checks, { scale: 1, duration: 0.5, delay: 0.35, ease: 'back.out(2.5)', stagger: 0.1 }),
 	});
 }

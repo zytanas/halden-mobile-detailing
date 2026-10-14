@@ -20,7 +20,7 @@ const copy = reviewsSection;
 
 <section id="reviews" aria-labelledby="reviews-heading" class="overflow-x-clip bg-bg py-section" data-reviews>
 	<Container>
-		<h2 id="reviews-heading" class="heading mb-10 max-w-[18ch] text-h2 text-ink lg:mb-14" data-reviews-reveal>
+		<h2 id="reviews-heading" class="heading mb-10 max-w-[18ch] text-h2 text-ink lg:mb-14" data-reveal="lines">
 			{copy.heading}
 		</h2>
 
@@ -32,6 +32,8 @@ const copy = reviewsSection;
 					class="-mx-gutter flex snap-x snap-mandatory scroll-px-gutter gap-3 overflow-x-auto overscroll-x-contain px-gutter pt-1 pb-4 scrollbar-none md:mx-0 md:grid md:grid-cols-2 md:gap-5 md:overflow-visible md:p-0 [&::-webkit-scrollbar]:hidden"
 					aria-label={copy.listLabel}
 					data-reviews-list
+					data-reveal="stagger"
+					data-lenis-prevent
 				>
 					{
 						reviews.map((review) => (
@@ -43,7 +45,7 @@ const copy = reviewsSection;
 				</ul>
 
 				<div class="reviews-marquee" role="group" aria-label={copy.listLabel} data-reviews-marquee>
-					<div class="flex flex-col gap-2">
+					<div class="flex flex-col gap-2" data-reveal="stagger" data-reveal-stagger="0.12">
 						{
 							reviewRows.map((row, i) => (
 								<div class="reviews-row py-3" data-reviews-row data-direction={i % 2 ? 'right' : 'left'}>

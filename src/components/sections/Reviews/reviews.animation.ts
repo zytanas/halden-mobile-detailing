@@ -2,102 +2,72 @@ import { gsap, ScrollTrigger } from '../../../lib/gsap';
 import { prefersReducedMotion } from '../../../lib/motion';
 import { formatStat } from '../../../content/results';
 
-// Matches --ease-out: cubic-bezier(0.16, 1, 0.3, 1)
-const EASE = 'expo.out';
-
 /** Seconds for one full loop of a marquee row */
 const LOOP = 40;
 
 /** Keep a focused card this far inside the row's edges, clear of the fade (--reviews-fade is 4rem) */
 const SAFE_EDGE = 80;
 
+/** Most extra speed scrolling can add, as a multiple of the normal speed */
+const MAX_BOOST = 3;
+
+/** Most the cards lean with scroll speed, in degrees */
+const MAX_LEAN = 2;
+
 const HIDDEN = 'inset(0% 100% 0% 0%)';
 const SHOWN = 'inset(0% 0% 0% 0%)';
 
 /*
  * The markup ships finished (final values, static list), which is what reduced motion and
- * no-JS users see. Everything below rewinds it and plays it back, and swaps the list for
- * the marquee where there's room for it.
+ * no-JS users see. Entrances come from lib/reveal.ts (data-reveal in the markup); this adds
+ * the summary's one-time count-up, and swaps the list for the marquee where there's room.
  */
 export function initReviews(root: HTMLElement) {
-	const mm = gsap.matchMedia();
-	mm.add(
-		{ wide: '(min-width: 48rem)', motion: '(prefers-reduced-motion: no-preference)' },
-		(context) => {
-			const { wide, motion } = context.conditions ?? {};
-			if (!motion) return;
-			return wide ? initMarquee(root) : revealList(root);
-		},
-	);
-
 	if (prefersReducedMotion()) return;
 
-	const q = gsap.utils.selector(root);
+	// Mobile keeps the swipe row (revealed by lib/reveal.ts); md and up get the marquee
+	gsap.matchMedia().add('(min-width: 48rem) and (prefers-reduced-motion: no-preference)', () => initMarquee(root));
 
-	const heading = q('[data-reviews-reveal]');
-	gsap.set(heading, { autoAlpha: 0, y: 24 });
-	ScrollTrigger.create({
-		trigger: root,
-		start: 'top 80%',
-		once: true,
-		onEnter: () => gsap.to(heading, { autoAlpha: 1, y: 0, duration: 1, ease: EASE }),
-	});
-
-	const summary = q('[data-reviews-summary]')[0] as HTMLElement | undefined;
+	const summary = root.querySelector<HTMLElement>('[data-reviews-summary]');
 	if (summary) initSummary(summary);
 }
 
 /*
- * Panel rises in with a sweep of light; the score counts up, the stars fill left to right
- * and the bars grow. Opacity rather than autoAlpha, so the button stays in the tab order.
+ * Once the panel has arrived (lib/reveal.ts scales it in): a sweep of light, the score counts
+ * up, the stars fill left to right and the bars grow. Plays once; never replays on scroll.
  */
 function initSummary(panel: HTMLElement) {
 	const score = panel.querySelector<HTMLElement>('[data-count-to]');
 	const fill = panel.querySelector<HTMLElement>('[data-stars-fill]');
 	const bars = gsap.utils.toArray<HTMLElement>('[data-reviews-bar]', panel);
+	const decimals = Number(score?.dataset.decimals) || 0;
 
-	gsap.set(panel, { opacity: 0, y: 40 });
+	// Start empty; the panel is still hidden by its reveal at this point
+	if (score) score.textContent = formatStat(0, decimals);
+	if (fill) gsap.set(fill, { clipPath: HIDDEN });
+	if (bars.length) gsap.set(bars, { clipPath: HIDDEN });
 
 	ScrollTrigger.create({
-		trigger: panel,
-		start: 'top 85%',
+		// The panel is sticky on desktop, so measure from its container, which scrolls normally
+		trigger: panel.parentElement ?? panel,
+		start: 'top 80%',
 		once: true,
 		onEnter: () => {
-			const tl = gsap.timeline();
-			tl.to(panel, { opacity: 1, y: 0, duration: 1, ease: EASE, clearProps: 'transform,opacity' }).fromTo(
-				panel,
-				{ '--sheen-x': '-30%' },
-				{ '--sheen-x': '130%', duration: 1.4, ease: 'power2.inOut' },
-				0.2,
-			);
-			if (score) tl.add(countUp(score), 0.2);
-			if (fill) {
-				tl.fromTo(
-					fill,
-					{ clipPath: HIDDEN },
-					{ clipPath: SHOWN, duration: 1.3, ease: 'power2.inOut', clearProps: 'clipPath' },
-					0.25,
-				);
-			}
+			const tl = gsap.timeline({ delay: 0.3 });
+			tl.fromTo(panel, { '--sheen-x': '-30%' }, { '--sheen-x': '130%', duration: 1.4, ease: 'power2.inOut' }, 0);
+			if (score) tl.add(countUp(score, decimals), 0);
+			if (fill) tl.to(fill, { clipPath: SHOWN, duration: 1.3, ease: 'power2.inOut', clearProps: 'clipPath' }, 0.05);
 			if (bars.length) {
-				tl.fromTo(
-					bars,
-					{ clipPath: HIDDEN },
-					{ clipPath: SHOWN, duration: 1, ease: 'power3.out', stagger: 0.08, clearProps: 'clipPath' },
-					0.4,
-				);
+				tl.to(bars, { clipPath: SHOWN, duration: 1, ease: 'power3.out', stagger: 0.08, clearProps: 'clipPath' }, 0.2);
 			}
 		},
 	});
 }
 
-/** Shows zero straight away (the panel is still transparent) and returns the count-up tween */
-function countUp(el: HTMLElement) {
+function countUp(el: HTMLElement, decimals: number) {
 	const target = Number(el.dataset.countTo);
-	const decimals = Number(el.dataset.decimals) || 0;
 	// Width is reserved in the markup (RatingSummary.astro), so no measuring here
 	const counter = { value: 0 };
-	el.textContent = formatStat(0, decimals);
 	return gsap.to(counter, {
 		value: target,
 		duration: 1.4,
@@ -105,19 +75,6 @@ function countUp(el: HTMLElement) {
 		onUpdate: () => {
 			el.textContent = formatStat(counter.value, decimals);
 		},
-	});
-}
-
-/* Mobile swipe row: a simple fade up */
-function revealList(root: HTMLElement) {
-	const list = root.querySelector<HTMLElement>('[data-reviews-list]');
-	if (!list) return;
-	gsap.set(list, { opacity: 0, y: 32 });
-	ScrollTrigger.create({
-		trigger: list,
-		start: 'top 90%',
-		once: true,
-		onEnter: () => gsap.to(list, { opacity: 1, y: 0, duration: 1, ease: EASE, clearProps: 'transform,opacity' }),
 	});
 }
 
@@ -137,9 +94,13 @@ const SET = 100 / 3;
  * Two rows looping in opposite directions. Each track holds its cards three times; the loop
  * slides it by one set (a third of its width), so the end frame matches the start exactly.
  *
- * A row moves only when the whole section has entered, it's on screen, the visitor hasn't
+ * A row moves only once the marquee has arrived, while it's on screen, the visitor hasn't
  * paused it, and nobody is hovering it or focused inside it. Speed changes ease through
  * timeScale, so rows glide to a stop instead of freezing.
+ *
+ * Scrolling pushes the rows along: faster with scroll speed, and scrolling up runs them
+ * backwards, until scrolling stops and they ease back to their normal speed and direction.
+ * The cards lean slightly with the speed.
  *
  * Returns a cleanup for gsap.matchMedia (tweens and triggers made here are reverted by it).
  */
@@ -161,6 +122,8 @@ function initMarquee(root: HTMLElement) {
 			{ xPercent: reverse ? -2 * SET : -SET },
 			{ xPercent: reverse ? -SET : -2 * SET, duration: LOOP, ease: 'none', repeat: -1 },
 		);
+		// Far into the loop, so running backwards (scrolling up) never reaches its start
+		tween.totalTime(LOOP * 1000);
 		tween.timeScale(0);
 		return [{ el, track, reverse, tween, hovered: false, focused: false }];
 	});
@@ -168,36 +131,29 @@ function initMarquee(root: HTMLElement) {
 	let started = false;
 	let inView = false;
 	let userPaused = false;
+	/** Scroll push: 1 = forwards, -1 = backwards (scrolling up); boost adds speed */
+	let direction = 1;
+	let boost = 0;
 
 	const update = (row: Row) => {
 		const moving = started && inView && !userPaused && !row.hovered && !row.focused;
-		gsap.to(row.tween, { timeScale: moving ? 1 : 0, duration: 0.6, ease: 'power2.out', overwrite: true });
+		const speed = moving ? direction * (1 + boost) : 0;
+		gsap.to(row.tween, { timeScale: speed, duration: 0.6, ease: 'power2.out', overwrite: true });
 	};
 	const updateAll = () => rows.forEach(update);
 
-	// Rows fade in, then start moving. Opacity only, so the cards stay focusable meanwhile.
-	const rowEls = rows.map((row) => row.el);
-	gsap.set(rowEls, { opacity: 0, y: 24 });
-	let entrance: gsap.core.Tween | undefined;
-	const reveal = () => {
-		entrance ??= gsap.to(rowEls, {
-			opacity: 1,
-			y: 0,
-			duration: 1,
-			ease: EASE,
-			stagger: 0.12,
-			clearProps: 'transform,opacity',
-			onComplete: () => {
-				started = true;
-				updateAll();
-			},
-		});
-		return entrance;
+	// Start moving shortly after the rows have begun their reveal (lib/reveal.ts)
+	const start = () => {
+		if (started) return;
+		started = true;
+		updateAll();
 	};
+	ScrollTrigger.create({ trigger: marquee, start: 'top 85%', once: true, onEnter: () => gsap.delayedCall(0.4, start) });
 
-	ScrollTrigger.create({ trigger: marquee, start: 'top 85%', once: true, onEnter: reveal });
+	const lean = rows.map((row) => gsap.quickTo(row.track, 'skewX', { duration: 0.5, ease: 'power3.out' }));
+	let settle: gsap.core.Tween | undefined;
 
-	// Don't spend frames on rows nobody can see
+	// Don't spend frames on rows nobody can see; while they're in view, follow the scroll
 	ScrollTrigger.create({
 		trigger: marquee,
 		start: 'top bottom',
@@ -205,6 +161,23 @@ function initMarquee(root: HTMLElement) {
 		onToggle: (self) => {
 			inView = self.isActive;
 			updateAll();
+		},
+		onUpdate: (self) => {
+			const velocity = self.getVelocity();
+			direction = self.direction;
+			boost = gsap.utils.clamp(0, MAX_BOOST, Math.abs(velocity) / 600);
+			updateAll();
+			const angle = userPaused ? 0 : gsap.utils.clamp(-MAX_LEAN, MAX_LEAN, -velocity / 400);
+			lean.forEach((to) => to(angle));
+
+			// Scrolling has stopped: back to normal speed and direction, upright
+			settle?.kill();
+			settle = gsap.delayedCall(0.15, () => {
+				direction = 1;
+				boost = 0;
+				updateAll();
+				lean.forEach((to) => to(0));
+			});
 		},
 	});
 
@@ -232,8 +205,6 @@ function initMarquee(root: HTMLElement) {
 		});
 
 		listen(row.el, 'focusin', (event) => {
-			// Tabbing in before the entrance has played: finish it so nothing is invisible
-			reveal().progress(1);
 			row.focused = true;
 			update(row);
 			if (event.target instanceof HTMLElement) bringIntoView(row, event.target);
@@ -255,10 +226,11 @@ function initMarquee(root: HTMLElement) {
 
 	return () => {
 		cleanups.forEach((cleanup) => cleanup());
-		// Focus nudges start after setup, so matchMedia doesn't know to revert them
+		settle?.kill();
+		// Focus nudges and the scroll lean start after setup, so matchMedia doesn't know to revert them
 		rows.forEach((row) => {
-			gsap.killTweensOf(row.track, 'x');
-			gsap.set(row.track, { x: 0 });
+			gsap.killTweensOf(row.track, 'x,skewX');
+			gsap.set(row.track, { x: 0, skewX: 0 });
 		});
 		delete root.dataset.marquee;
 		toggle.removeAttribute('data-paused');

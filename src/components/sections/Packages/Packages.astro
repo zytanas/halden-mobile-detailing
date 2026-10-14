@@ -52,14 +52,16 @@ const copy = packagesSection;
 <section id="packages" aria-labelledby="packages-heading" class="overflow-x-clip py-section" data-packages>
 	<Container>
 		<div class="mb-10 flex flex-col gap-5 lg:mb-14 lg:flex-row lg:items-end lg:justify-between">
-			<h2 id="packages-heading" class="heading text-h2 text-ink">
+			<h2 id="packages-heading" class="heading text-h2 text-ink" data-reveal="lines">
 				{copy.heading}
 			</h2>
-			<p class="max-w-[38ch] text-lead text-ink-muted">{copy.intro}</p>
+			<p class="max-w-[38ch] text-lead text-ink-muted" data-reveal data-reveal-delay="0.1">{copy.intro}</p>
 		</div>
 
+		<!-- Cards settle into the grid as it scrolls in (packages.animation.ts), so no data-reveal here -->
 		<div
 			class="grid grid-cols-2 gap-bento-gap md:grid-flow-dense md:auto-rows-60 lg:grid-cols-4 lg:auto-rows-(--bento-row)"
+			data-bento-grid
 		>
 			{
 				packageCards.map(({ pkg, featured, class: placement, slot }) => (

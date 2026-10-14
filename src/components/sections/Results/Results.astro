@@ -48,10 +48,10 @@ const copy = resultsSection;
 <section id="results" aria-labelledby="results-heading" class="overflow-x-clip bg-bg py-section" data-results>
 	<Container>
 		<div class="mb-10 flex flex-col gap-5 lg:mb-14 lg:flex-row lg:items-end lg:justify-between">
-			<h2 id="results-heading" class="heading text-h2 text-ink" data-results-reveal>
+			<h2 id="results-heading" class="heading text-h2 text-ink" data-reveal="lines">
 				{copy.heading}
 			</h2>
-			<p class="max-w-[48ch] text-lead text-ink-muted" data-results-reveal>{copy.intro}</p>
+			<p class="max-w-[48ch] text-lead text-ink-muted" data-reveal data-reveal-delay="0.1">{copy.intro}</p>
 		</div>
 
 		<div class="grid grid-cols-1 gap-x-4 gap-y-8 md:grid-cols-2 lg:grid-cols-3 lg:gap-x-6">
@@ -63,6 +63,7 @@ const copy = resultsSection;
 							slider.featured && 'md:col-span-2 lg:row-span-2',
 						]}
 						data-results-frame
+						data-reveal={slider.featured ? undefined : 'clip'}
 					>
 						<div
 							class:list={[
@@ -70,6 +71,7 @@ const copy = resultsSection;
 								// Fill the two-row height on desktop instead of a fixed ratio
 								slider.featured && 'lg:aspect-auto lg:min-h-0 lg:flex-1',
 							]}
+							data-results-featured={slider.featured || undefined}
 						>
 							<BeforeAfter
 								client:visible
@@ -81,7 +83,7 @@ const copy = resultsSection;
 								afterLabel={copy.slider.afterLabel}
 							/>
 						</div>
-						<figcaption class="mt-4">
+						<figcaption class="mt-4" data-reveal={slider.featured ? 'up' : undefined}>
 							<span class="heading block text-2xl text-ink">{slider.title}</span>
 							<span class="mt-1 block text-sm text-ink-muted">{slider.caption}</span>
 						</figcaption>
@@ -92,7 +94,7 @@ const copy = resultsSection;
 
 		<StatCounter stats={stats} class="mt-12 lg:mt-16" />
 
-		<div class="mt-12 flex flex-col items-center gap-6 text-center lg:mt-16">
+		<div class="mt-12 flex flex-col items-center gap-6 text-center lg:mt-16" data-reveal>
 			<p class="text-lead text-balance text-ink">{copy.closing.text}</p>
 			<Button href={copy.closing.cta.href} variant="primary">{copy.closing.cta.label}</Button>
 		</div>

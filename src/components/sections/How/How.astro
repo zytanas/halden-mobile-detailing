@@ -11,14 +11,14 @@ const copy = howSection;
 <section id="how" aria-labelledby="how-heading" class="overflow-x-clip bg-bg py-section" data-how>
 	<Container>
 		<div class="mb-10 flex flex-col gap-5 lg:mb-14 lg:flex-row lg:items-end lg:justify-between">
-			<h2 id="how-heading" class="heading max-w-[16ch] text-h2 text-ink" data-how-reveal>
+			<h2 id="how-heading" class="heading max-w-[16ch] text-h2 text-ink" data-reveal="lines">
 				{copy.heading}
 			</h2>
-			<p class="max-w-[48ch] text-lead text-ink-muted" data-how-reveal>{copy.intro}</p>
+			<p class="max-w-[48ch] text-lead text-ink-muted" data-reveal data-reveal-delay="0.1">{copy.intro}</p>
 		</div>
 
-		<div class="how-steps relative" data-how-steps>
-			<ol class="grid grid-cols-1 gap-6 md:grid-cols-3">
+		<div class="how-steps relative isolate" data-how-steps>
+			<ol class="grid grid-cols-1 gap-6 md:grid-cols-3" data-reveal="stagger" data-reveal-stagger="0.12" data-how-list>
 				{steps.map((step) => <StepCard {...step} />)}
 			</ol>
 
@@ -35,6 +35,7 @@ const copy = howSection;
 		<div
 			class="relative mt-6 flex flex-col overflow-hidden rounded-xl bg-ink px-6 py-8 text-on-accent sm:px-8 lg:mt-8 lg:px-10 lg:py-10 xl:flex-row xl:items-center xl:gap-10 xl:pr-30"
 			data-how-band
+			data-reveal
 		>
 			<!--
 				Diagonal accent stripe, a nod to the hero, running the full height of the band. Steeper on
