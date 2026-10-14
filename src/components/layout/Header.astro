@@ -4,12 +4,19 @@ import Icon from '../ui/Icon.astro';
 import Logo from '../ui/Logo.astro';
 import { site } from '../../config/site';
 import { navigation } from '../../content/navigation';
+import { homeHref, isHomePath } from '../../lib/links';
 
+const pathname = Astro.url.pathname;
+const isHome = isHomePath(pathname);
+/** Section links become "/#section" off the home page */
+const href = (target: string) => homeHref(target, pathname);
 const callLabel = `${navigation.callLabel} ${site.phone}`;
 ---
 
 <header
 	class="pointer-events-none fixed inset-x-0 top-3 z-50 lg:top-4"
+	data-home={isHome || undefined}
+	data-header
 >
 	<div class="mx-auto w-full max-w-site px-gutter">
 		<div
@@ -23,7 +30,7 @@ const callLabel = `${navigation.callLabel} ${site.phone}`;
 						navigation.links.map((link) => (
 							<li>
 								<a
-									href={link.href}
+									href={href(link.href)}
 									class="relative block rounded-pill px-2.5 py-2 text-[0.8125rem] font-medium text-ink-muted transition-colors duration-300 after:absolute after:bottom-0.5 after:left-1/2 after:size-1 after:-translate-x-1/2 after:rounded-full after:bg-accent after:opacity-0 after:transition-opacity after:duration-300 hover:text-ink data-active:text-ink data-active:after:opacity-100 xl:px-3"
 									data-nav-link
 								>
@@ -45,7 +52,7 @@ const callLabel = `${navigation.callLabel} ${site.phone}`;
 					<span class="hidden tabular-nums xl:inline">{site.phone}</span>
 					<span class="sr-only xl:hidden">{callLabel}</span>
 				</a>
-				<Button href={navigation.cta.href} size="sm" class="max-lg:hidden">{navigation.cta.label}</Button>
+				<Button href={href(navigation.cta.href)} size="sm" class="max-lg:hidden">{navigation.cta.label}</Button>
 
 				<!-- Mobile/tablet: call + menu -->
 				<a
@@ -100,7 +107,7 @@ const callLabel = `${navigation.callLabel} ${site.phone}`;
 				navigation.links.map((link) => (
 					<li data-menu-item>
 						<a
-							href={link.href}
+							href={href(link.href)}
 							class="heading block py-1.5 text-h2 text-ink transition-colors duration-300 hover:text-accent data-active:text-accent"
 							data-nav-link
 						>
@@ -132,7 +139,7 @@ const callLabel = `${navigation.callLabel} ${site.phone}`;
 					<span><span class="sr-only">{navigation.hoursLabel}: </span>{site.hours}</span>
 				</li>
 			</ul>
-			<Button href={navigation.cta.href} class="mt-7 w-full">{navigation.cta.label}</Button>
+			<Button href={href(navigation.cta.href)} class="mt-7 w-full">{navigation.cta.label}</Button>
 		</div>
 	</div>
 </div>
@@ -165,7 +172,10 @@ const callLabel = `${navigation.callLabel} ${site.phone}`;
 		}
 	};
 
-	if (sections.length) {
+	// Only the home page has these sections; elsewhere the links lead back to "/#section"
+	const onHome = document.querySelector('[data-header]')?.hasAttribute('data-home') ?? false;
+
+	if (onHome && sections.length) {
 		const visible = new Set<string>();
 		const observer = new IntersectionObserver(
 			(entries) => {

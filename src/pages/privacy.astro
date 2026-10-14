@@ -1,0 +1,9 @@
+---
+import { getEntry } from 'astro:content';
+import LegalLayout from '../layouts/LegalLayout.astro';
+
+const entry = await getEntry('legal', 'privacy');
+if (!entry) throw new Error('Missing src/content/legal/privacy.md');
+---
+
+<LegalLayout entry={entry} />

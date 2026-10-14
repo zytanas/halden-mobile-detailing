@@ -2,6 +2,7 @@
 import Button from '../ui/Button.astro';
 import { site } from '../../config/site';
 import { mobileBar } from '../../content/navigation';
+import { homeHref } from '../../lib/links';
 ---
 
 <aside
@@ -14,7 +15,7 @@ import { mobileBar } from '../../content/navigation';
 		class="flex gap-3 border-t border-line bg-metal-100/80 px-gutter pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-xl"
 	>
 		<Button href={site.phoneHref} variant="outline" class="flex-1">{mobileBar.call}</Button>
-		<Button href={mobileBar.quote.href} class="flex-1">{mobileBar.quote.label}</Button>
+		<Button href={homeHref(mobileBar.quote.href, Astro.url.pathname)} class="flex-1">{mobileBar.quote.label}</Button>
 	</div>
 </aside>
 

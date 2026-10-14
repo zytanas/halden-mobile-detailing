@@ -1,0 +1,219 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import BaseLayout from './BaseLayout.astro';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+import MobileBar from '../components/layout/MobileBar.astro';
+import Button from '../components/ui/Button.astro';
+import Container from '../components/ui/Container.astro';
+import Icon from '../components/ui/Icon.astro';
+import { site } from '../config/site';
+import { legalPage as copy } from '../content/legal-page';
+import { fillHtml, fillText } from '../lib/legal';
+
+interface Props {
+	entry: CollectionEntry<'legal'>;
+}
+
+const { entry } = Astro.props;
+if (!entry.rendered) throw new Error(`Legal page "${entry.id}" has no rendered content`);
+
+const title = fillText(entry.data.title);
+const description = fillText(entry.data.description);
+const notice = entry.data.notice && fillText(entry.data.notice);
+const html = fillHtml(entry.rendered.html);
+const toc = (entry.rendered.metadata?.headings ?? [])
+	.filter((heading) => heading.depth === 2)
+	.map((heading) => ({ id: heading.slug, text: fillText(heading.text) }));
+
+/*
+ * Two columns on desktop: a sticky table of contents (25%) and the content (75%).
+ * On smaller screens the contents collapse into an "On this page" disclosure above the text.
+ * The script highlights the section currently being read in both versions.
+ */
+---
+
+<BaseLayout title={`${title} · ${site.name}`} description={description}>
+	<Header />
+	<main class="pt-hero-top pb-section">
+		<Container>
+			<header
+				class="legal-hero metal metal-sheen isolate overflow-hidden rounded-panel border border-metal-100/80 shadow-lift"
+			>
+				<!-- The hero's racing stripes, on the right -->
+				<div class="pointer-events-none absolute inset-0 hidden overflow-hidden rounded-panel md:block" aria-hidden="true">
+					<div class="absolute -top-1/2 left-[84%] flex h-[220%] rotate-28 gap-3 xl:gap-3.5">
+						<div class="h-full w-14 bg-accent lg:w-20"></div>
+						<div class="h-full w-5 bg-accent-deep lg:w-7"></div>
+					</div>
+				</div>
+
+				<div class="relative z-2 p-7 sm:p-10 md:max-w-[72%] lg:px-14 lg:py-12">
+					<h1 class="heading text-h2 text-ink">{title}</h1>
+					<p class="mt-4 max-w-[52ch] text-lead text-ink-muted">{description}</p>
+					<p class="mt-6 text-sm text-ink-muted">
+						{copy.updatedLabel}: <span class="font-medium text-ink">{entry.data.updated}</span>
+					</p>
+				</div>
+			</header>
+
+			<div
+				class="mt-8 grid grid-cols-1 gap-y-8 md:mt-12 lg:mt-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,3fr)] lg:gap-x-12 xl:gap-x-16"
+			>
+				{
+					toc.length > 0 && (
+						<div class="lg:sticky lg:top-28 lg:self-start">
+							<!-- Mobile / tablet: collapsible -->
+							<details class="group metal-card rounded-xl lg:hidden" data-toc-details>
+								<summary class="flex min-h-13 cursor-pointer list-none items-center justify-between gap-4 rounded-xl px-5 font-semibold text-ink [&::-webkit-details-marker]:hidden">
+									{copy.tocTitle}
+									<Icon
+										name="chevron-up"
+										class="size-4 rotate-180 text-accent-deep transition-transform duration-300 ease-out group-open:rotate-0 motion-reduce:transition-none"
+									/>
+								</summary>
+								<nav aria-label={copy.tocTitle} class="border-t border-line px-5 pt-3 pb-4">
+									<ol class="flex flex-col">
+										{toc.map((item) => (
+											<li>
+												<a
+													href={`#${item.id}`}
+													class="block py-2 text-[0.9375rem] text-ink-muted transition-colors duration-300 hover:text-ink data-active:font-medium data-active:text-accent-deep"
+													data-toc-link
+												>
+													{item.text}
+												</a>
+											</li>
+										))}
+									</ol>
+								</nav>
+							</details>
+
+							<!-- Desktop: sticky list -->
+							<nav aria-labelledby="toc-title" class="hidden lg:block">
+								<p id="toc-title" class="text-xs font-semibold tracking-eyebrow text-ink uppercase">
+									{copy.tocTitle}
+								</p>
+								<ol class="mt-5 flex flex-col border-l border-line">
+									{toc.map((item) => (
+										<li>
+											<a
+												href={`#${item.id}`}
+												class="-ml-px block border-l-2 border-transparent py-1.5 pl-4 text-sm leading-snug text-ink-muted transition-colors duration-300 hover:text-ink data-active:border-accent data-active:font-medium data-active:text-accent-deep"
+												data-toc-link
+											>
+												{item.text}
+											</a>
+										</li>
+									))}
+								</ol>
+							</nav>
+						</div>
+					)
+				}
+
+				<div class:list={['min-w-0', toc.length === 0 && 'lg:col-start-2']}>
+					{
+						notice && (
+							<aside
+								aria-label={copy.noticeLabel}
+								class="metal-card mb-10 flex max-w-[70ch] gap-3.5 rounded-xl p-5 sm:p-6"
+							>
+								<Icon name="info" class="mt-0.5 size-5 shrink-0 text-accent-deep" />
+								<p class="font-medium text-ink">{notice}</p>
+							</aside>
+						)
+					}
+
+					<article class="prose prose-halden" data-legal-content set:html={html} />
+
+					<div class="mt-14 border-t border-line pt-8">
+						<Button href={copy.backHome.href} variant="outline">
+							<Icon name="arrow" class="size-4 rotate-180" />
+							{copy.backHome.label}
+						</Button>
+					</div>
+				</div>
+			</div>
+		</Container>
+	</main>
+	<Footer />
+	<MobileBar />
+</BaseLayout>
+
+<style>
+	/* Keep the copy side at metal-200 or lighter (muted-text contrast rule) */
+	.legal-hero {
+		--metal-wash: linear-gradient(
+			to right,
+			color-mix(in oklab, var(--color-metal-200) 90%, transparent) 0%,
+			color-mix(in oklab, var(--color-metal-200) 90%, transparent) 60%,
+			transparent 88%
+		);
+	}
+
+	/* A gentle fade-in, only when motion is welcome */
+	@media (prefers-reduced-motion: no-preference) {
+		.legal-hero {
+			animation: legal-hero-in var(--duration-slow) var(--ease-out) both;
+		}
+	}
+
+	@keyframes legal-hero-in {
+		from {
+			opacity: 0;
+			translate: 0 0.75rem;
+		}
+	}
+</style>
+
+<script>
+	/* ---------- Table of contents: highlight the section being read ---------- */
+	const headings = [...document.querySelectorAll<HTMLElement>('[data-legal-content] h2[id]')];
+	const links = [...document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]')];
+	const details = document.querySelector<HTMLDetailsElement>('[data-toc-details]');
+
+	if (headings.length && links.length) {
+		let current: string | null = null;
+
+		const setActive = (id: string) => {
+			if (id === current) return;
+			current = id;
+			for (const link of links) {
+				const active = link.hash === `#${id}`;
+				link.toggleAttribute('data-active', active);
+				if (active) link.setAttribute('aria-current', 'location');
+				else link.removeAttribute('aria-current');
+			}
+		};
+
+		// The active section is the last heading that has passed a line just below the navbar
+		const update = () => {
+			const line = parseFloat(getComputedStyle(headings[0]).scrollMarginTop || '0') + 24;
+			let active = headings[0];
+			for (const heading of headings) {
+				if (heading.getBoundingClientRect().top <= line) active = heading;
+				else break;
+			}
+			setActive(active.id);
+		};
+
+		let frame = 0;
+		const schedule = () => {
+			if (frame) return;
+			frame = requestAnimationFrame(() => {
+				frame = 0;
+				update();
+			});
+		};
+
+		window.addEventListener('scroll', schedule, { passive: true });
+		window.addEventListener('resize', schedule);
+		update();
+	}
+
+	// Close the mobile disclosure once a section is chosen
+	details?.addEventListener('click', (event) => {
+		if ((event.target as Element).closest('[data-toc-link]')) details.open = false;
+	});
+</script>

@@ -6,8 +6,17 @@ import Logo from '../ui/Logo.astro';
 import { site } from '../../config/site';
 import { footer } from '../../content/footer';
 import { navigation } from '../../content/navigation';
+import { homeHref, isCurrentPath } from '../../lib/links';
 
 const { cta, contact } = footer;
+const pathname = Astro.url.pathname;
+
+// Section links become "/#section" off the home page; the current legal page is marked
+const quickLinks = [...navigation.links, ...footer.legal].map((link) => ({
+	label: link.label,
+	href: homeHref(link.href, pathname),
+	current: isCurrentPath(link.href, pathname),
+}));
 const year = new Date().getFullYear();
 
 const contactLinks = [
@@ -42,7 +51,7 @@ const linkClass = 'rounded-sm transition-colors duration-300 ease-out hover:text
 				<h2 class="heading text-h2 text-ink">{cta.title}</h2>
 				<p class="mt-4 text-lead text-ink-muted">{cta.text}</p>
 				<div class="mt-8 flex flex-col gap-3 sm:flex-row">
-					<Button href={cta.primary.href}>{cta.primary.label}</Button>
+					<Button href={homeHref(cta.primary.href, pathname)}>{cta.primary.label}</Button>
 					<Button href={cta.call.href} variant="outline">
 						<Icon name="phone" class="size-4" />
 						<span class="tabular-nums">{cta.call.label}</span>
@@ -107,9 +116,13 @@ const linkClass = 'rounded-sm transition-colors duration-300 ease-out hover:text
 					<h2 id="footer-links-title" class={columnTitle}>{footer.linksTitle}</h2>
 					<ul class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-1">
 						{
-							[...navigation.links, ...footer.legal].map((link) => (
+							quickLinks.map((link) => (
 								<li>
-									<a href={link.href} class={linkClass}>
+									<a
+										href={link.href}
+										class:list={[linkClass, 'aria-[current=page]:text-on-accent aria-[current=page]:underline aria-[current=page]:decoration-accent aria-[current=page]:underline-offset-4']}
+										aria-current={link.current ? 'page' : undefined}
+									>
 										{link.label}
 									</a>
 								</li>

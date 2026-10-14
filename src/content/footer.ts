@@ -28,8 +28,8 @@ export const footer = {
 	areasTitle: 'Areas covered',
 	linksTitle: 'Quick links',
 	legal: [
-		{ label: 'Privacy', href: '#' },
-		{ label: 'Terms', href: '#' },
+		{ label: 'Privacy', href: '/privacy' },
+		{ label: 'Terms', href: '/terms' },
 	],
 	socialLabel: 'Social media',
 	social: [

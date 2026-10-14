@@ -1,5 +1,6 @@
 ---
-import logomark from '../../../assets/images/logo/halden-logomark.svg';
+import { Image } from 'astro:assets';
+import logomark from '../../../assets/images/logo/halden-logomark.png';
 import { site } from '../../../config/site';
 import { clubSection } from '../../../content/club';
 
@@ -38,15 +39,8 @@ const { card } = clubSection;
 		<div class="relative z-2 flex h-full flex-col justify-between p-[5.7cqw]">
 			<div class="flex items-start justify-between">
 				<div class="flex items-center gap-[2.4cqw]">
-					<img
-						src={logomark.src}
-						width={logomark.width}
-						height={logomark.height}
-						alt=""
-						decoding="async"
-						loading="lazy"
-						class="h-[4.8cqw] w-auto"
-					/>
+					<!-- At most ~20px tall (4.8cqw of a 420px card); 1x and 2x WebP -->
+					<Image src={logomark} height={24} densities={[1, 2]} alt="" class="h-[4.8cqw] w-auto" />
 					<span class="heading text-[5.2cqw] tracking-[0.1em] text-ink">{site.club.name}</span>
 				</div>
 
